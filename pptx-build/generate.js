@@ -145,11 +145,35 @@ function detailBlock(slide, x, y, w, h, blockTitle, bullets, opts = {}) {
   });
 }
 
+// Same wrap heuristic used by check_overflow.py — avg char width as a
+// fraction of font size, for Arial regular/bold mixed-case French text.
+function estimateLines(text, colWidthIn, fontSizePt) {
+  const charWIn = (fontSizePt * 0.52) / 72;
+  const perLine = Math.max(1, Math.floor((colWidthIn - 0.2) / charWIn)); // -0.2 for cell padding
+  return Math.max(1, Math.ceil(String(text).length / perLine));
+}
+
+// Returns the y-coordinate immediately below the rendered table, computed
+// from real per-row heights (PowerPoint/LibreOffice grows a row to fit its
+// tallest wrapped cell — a flat guessed rowH under-measures as soon as any
+// cell wraps, which silently overlaps whatever is placed after the table).
 function dataTable(slide, x, y, w, headers, rows, opts = {}) {
   const colW = opts.colW; // array summing to w
-  const rowH = opts.rowH || 0.4;
+  const minRowH = opts.rowH || 0.4;
   const headFS = opts.headFS || 10;
   const bodyFS = opts.bodyFS || 11;
+
+  const lineH = (fs) => (fs * 1.32) / 72;
+  let headerLines = 1;
+  headers.forEach((h, i) => { headerLines = Math.max(headerLines, estimateLines(h.toUpperCase(), colW[i], headFS)); });
+  const headerH = Math.max(minRowH * 0.85, headerLines * lineH(headFS) + 0.16);
+
+  const rowHeights = rows.map((r) => {
+    let lines = 1;
+    r.forEach((cell, i) => { lines = Math.max(lines, estimateLines(cell, colW[i], bodyFS)); });
+    return Math.max(minRowH, lines * lineH(bodyFS) + 0.18);
+  });
+
   const headerRow = headers.map((htext, i) => ({
     text: htext.toUpperCase(),
     options: {
@@ -173,9 +197,10 @@ function dataTable(slide, x, y, w, headers, rows, opts = {}) {
   });
   slide.addTable([headerRow, ...bodyRows], {
     x, y, w, colW,
-    rowH: [rowH * 0.85, ...rows.map(() => rowH)],
+    rowH: [headerH, ...rowHeights],
     autoPage: false,
   });
+  return y + headerH + rowHeights.reduce((a, b) => a + b, 0);
 }
 
 function stepCircle(slide, cx, cy, d, num, opacity = 1) {
@@ -370,7 +395,7 @@ dividerSlide(
   bodyText(s, "Dix documents types couvrent l'ensemble du cycle de vie d'un projet IT, du cadrage à la capitalisation.", MX, 1.8, CONTENT_W, 0.4, { fontSize: 13 });
   const colGap = 0.4, colW = (CONTENT_W - colGap) / 2;
   s.addText("TABLEAU 1 — SOCLE DE CADRAGE", { x: MX, y: 2.35, w: colW, h: 0.3, fontFace: FONT, fontSize: 10.5, bold: true, color: PRIMARY, margin: 0 });
-  dataTable(s, MX, 2.68, colW, ["Document", "Objectif", "Moment"],
+  const t1Bottom = dataTable(s, MX, 2.68, colW, ["Document", "Objectif", "Moment"],
     [
       ["Charte de projet", "Formaliser l'accord de lancement", "Cadrage"],
       ["Cahier des charges", "Détailler les exigences à respecter", "Cadrage / conception"],
@@ -382,7 +407,7 @@ dividerSlide(
   );
   const x2 = MX + colW + colGap;
   s.addText("TABLEAU 2 — PILOTAGE ET CLÔTURE", { x: x2, y: 2.35, w: colW, h: 0.3, fontFace: FONT, fontSize: 10.5, bold: true, color: PRIMARY, margin: 0 });
-  dataTable(s, x2, 2.68, colW, ["Document", "Objectif", "Moment"],
+  const t2Bottom = dataTable(s, x2, 2.68, colW, ["Document", "Objectif", "Moment"],
     [
       ["Plan de communication", "Organiser messages, canaux, fréquences", "Lancement, utilisé en continu"],
       ["Tableau de bord de suivi", "Piloter avancement, budget, qualité", "En continu"],
@@ -394,7 +419,7 @@ dividerSlide(
   );
   bodyText(s,
     "Les cinq premiers documents forment le socle minimal pour lancer tout projet DSI ; les cinq suivants accompagnent le pilotage et la clôture.",
-    MX, 6.75, CONTENT_W, 0.4, { fontSize: 11.5 }
+    MX, Math.max(t1Bottom, t2Bottom) + 0.2, CONTENT_W, 0.4, { fontSize: 11.5 }
   );
 }
 
@@ -431,7 +456,7 @@ dividerSlide(
     MX, 2.4, leftW, 4.0, { fontSize: 13.5, gap: 20, rowH: 0.62 }
   );
   s.addText("TABLEAU 3 — CRITÈRES DE PRIORISATION ET COTATION", { x: rightX, y: 2.3, w: rightW, h: 0.3, fontFace: FONT, fontSize: 10.5, bold: true, color: PRIMARY, margin: 0 });
-  dataTable(s, rightX, 2.63, rightW, ["Critère", "Ce qu'il mesure", "Échelle"],
+  const critBottom = dataTable(s, rightX, 2.63, rightW, ["Critère", "Ce qu'il mesure", "Échelle"],
     [
       ["Nécessité stratégique", "Importance pour la stratégie Time'Eats", "1 à 5 — un projet réglementaire est toujours coté 5"],
       ["Rentabilité attendue", "Nouveaux clients, CA, économies", "1 (faible) à 5 (fort)"],
@@ -439,7 +464,8 @@ dividerSlide(
     ],
     { colW: [rightW * 0.24, rightW * 0.35, rightW * 0.41], rowH: 0.72, bodyFS: 10.5 }
   );
-  callout(s, rightX, 4.95, rightW, 1.65, [
+  const calloutY = critBottom + 0.2;
+  callout(s, rightX, calloutY, rightW, 6.95 - calloutY, [
     { text: "Score = Nécessité + Rentabilité + Maîtrise des risques", options: { bold: true, color: PRIMARY, fontFace: FONT, fontSize: 12.5, breakLine: true } },
     { text: " (sur 15). P1 — Engagé (≥ 12) · P2 — Important (9-11) · P3 — À surveiller (≤ 8).", options: { color: TEXT, fontFace: FONT, fontSize: 12.5, breakLine: true } },
     { text: "Exception : un projet réglementaire reste engagé quel que soit son score.", options: { italic: true, color: TEXT_MUTED, fontFace: FONT, fontSize: 11 } },
@@ -467,7 +493,7 @@ dividerSlide(
     ["9=", "Plateforme de livraison continue", "3", "3", "3", "9", "P2"],
     ["11", "Migration MS Azure des applications métiers", "3", "4", "1", "8", "P3"],
   ];
-  dataTable(s, MX, 2.1, CONTENT_W, ["Rang", "Projet", "Néc.", "Rent.", "M.R.", "Score /15", "Priorité"], rows, {
+  const projBottom = dataTable(s, MX, 2.1, CONTENT_W, ["Rang", "Projet", "Néc.", "Rent.", "M.R.", "Score /15", "Priorité"], rows, {
     colW: [0.7, CONTENT_W - 0.7 - 0.9 * 4 - 1.0, 0.9, 0.9, 0.9, 1.0, 0.9],
     rowH: 0.34, bodyFS: 10.5, headFS: 9.5,
     align: ["center", "left", "center", "center", "center", "center", "center"],
@@ -475,7 +501,7 @@ dividerSlide(
   });
   bodyText(s,
     "* Projet réglementaire : engagé quel que soit son score. L'authentification forte (juillet) et la sauvegarde Cloud (octobre) ne se chevauchent pas dans le temps. Elle se classe en Priorité 1 (rang 3 sur 11), ce qui confirme la pertinence du projet imposé pour cet exercice.",
-    MX, 6.05, CONTENT_W, 0.75, { fontSize: 11 }
+    MX, projBottom + 0.15, CONTENT_W, 0.75, { fontSize: 11 }
   );
 }
 
@@ -545,7 +571,7 @@ dividerSlide(
   title(s, "Budget prévisionnel et planning", { fontSize: 24, h: 0.55 });
   const colGap = 0.4, colW = (CONTENT_W - colGap) / 2;
   s.addText("TABLEAU 5 — BUDGET PRÉVISIONNEL (150 K€)", { x: MX, y: 1.9, w: colW, h: 0.3, fontFace: FONT, fontSize: 10.5, bold: true, color: PRIMARY, margin: 0 });
-  dataTable(s, MX, 2.23, colW, ["Poste de dépense", "Montant", "Commentaire"],
+  const budgetBottom = dataTable(s, MX, 2.23, colW, ["Poste de dépense", "Montant", "Commentaire"],
     [
       ["Solution MFA (licences)", "40 k€", "Pour l'ensemble des collaborateurs"],
       ["Intégration (prestation ESN)", "55 k€", "Interfaçage AD + applications tierces"],
@@ -558,7 +584,7 @@ dividerSlide(
   );
   const x2 = MX + colW + colGap;
   s.addText("TABLEAU 6 — PLANNING PRÉVISIONNEL (JUILLET–OCTOBRE N)", { x: x2, y: 1.9, w: colW, h: 0.3, fontFace: FONT, fontSize: 10.5, bold: true, color: PRIMARY, margin: 0 });
-  dataTable(s, x2, 2.23, colW, ["Phase", "Période", "Jalon"],
+  const planningBottom = dataTable(s, x2, 2.23, colW, ["Phase", "Période", "Jalon"],
     [
       ["Cadrage & lancement", "Juillet (S1-S2)", "Charte validée"],
       ["Choix solution & conception", "Juillet (S3-S4)", "Dossier de conception validé"],
@@ -571,7 +597,7 @@ dividerSlide(
   );
   bodyText(s,
     "Intégration technique confiée à un prestataire ; formation portée en interne, là où l'équipe connaît mieux le contexte de Time'Eats.",
-    MX, 5.95, CONTENT_W, 0.5, { fontSize: 12 }
+    MX, Math.max(budgetBottom, planningBottom) + 0.15, CONTENT_W, 0.5, { fontSize: 12 }
   );
 }
 
@@ -591,12 +617,12 @@ dividerSlide(
     ["R-04", "Applications tierces incompatibles avec le protocole retenu", "Technique", "3", "3", "9", "Audit de compatibilité dès le cadrage, plan de contournement si besoin"],
     ["R-05", "Interruption d'accès pendant la bascule d'un site", "Technique", "2", "5", "10", "Bascule progressive, fenêtre annoncée, support renforcé le jour J"],
   ];
-  dataTable(s, MX, 2.58, CONTENT_W, ["ID", "Risque", "Catégorie", "P", "I", "Crit.", "Plan d'action"], rows, {
+  const risksBottom = dataTable(s, MX, 2.58, CONTENT_W, ["ID", "Risque", "Catégorie", "P", "I", "Crit.", "Plan d'action"], rows, {
     colW: [0.6, CONTENT_W * 0.28, 1.15, 0.5, 0.5, 0.6, CONTENT_W - 0.6 - CONTENT_W * 0.28 - 1.15 - 0.5 - 0.5 - 0.6],
     rowH: 0.72, bodyFS: 10.5,
     align: ["center", "left", "left", "center", "center", "center", "left"],
   });
-  bodyText(s, "R-01 et R-02 sont les plus critiques (score 12) : ils touchent directement l'expérience des utilisateurs, cible principale du plan de communication.", MX, 6.6, CONTENT_W, 0.5, { fontSize: 11.5 });
+  bodyText(s, "R-01 et R-02 sont les plus critiques (score 12) : ils touchent directement l'expérience des utilisateurs, cible principale du plan de communication.", MX, risksBottom + 0.15, CONTENT_W, 0.5, { fontSize: 11.5 });
 }
 
 // =========================================================================
@@ -614,11 +640,11 @@ dividerSlide(
     ["Ensemble des collaborateurs", "Informer, rassurer, accompagner", "Pourquoi ce projet, comment s'inscrire, où trouver de l'aide", "Intranet, affichage, mailing", "Hebdo pendant le déploiement"],
     ["Site pilote (Rennes)", "Tester et remonter les difficultés", "Consignes de test, canal de remontée", "Canal dédié", "Quotidien pendant le pilote"],
   ];
-  dataTable(s, MX, 2.58, CONTENT_W, ["Cible", "Objectif", "Message clé", "Canal", "Fréquence"], rows, {
+  const commBottom = dataTable(s, MX, 2.58, CONTENT_W, ["Cible", "Objectif", "Message clé", "Canal", "Fréquence"], rows, {
     colW: [1.9, 2.1, 3.3, 1.9, CONTENT_W - 1.9 - 2.1 - 3.3 - 1.9],
     rowH: 0.85, bodyFS: 10.5,
   });
-  bodyText(s, "Le canal compte parfois plus que le message : les équipes de production réagissent mieux à un relais de proximité qu'à un simple email.", MX, 6.35, CONTENT_W, 0.5, { fontSize: 11.5 });
+  bodyText(s, "Le canal compte parfois plus que le message : les équipes de production réagissent mieux à un relais de proximité qu'à un simple email.", MX, commBottom + 0.15, CONTENT_W, 0.5, { fontSize: 11.5 });
 }
 
 // =========================================================================
@@ -637,11 +663,11 @@ dividerSlide(
     ["Taux d'incidents d'accès (qualité)", "Tickets « blocage d'accès » ouverts / semaine", "Décroissant après S2 du déploiement", "Hebdomadaire"],
     ["Complétion des formations (qualité)", "Collaborateurs formés / à former", "100 % avant bascule de chaque site", "Hebdomadaire"],
   ];
-  dataTable(s, MX, 2.58, CONTENT_W, ["Indicateur", "Mode de calcul", "Cible", "Fréquence"], rows, {
+  const kpiBottom = dataTable(s, MX, 2.58, CONTENT_W, ["Indicateur", "Mode de calcul", "Cible", "Fréquence"], rows, {
     colW: [3.1, 3.6, 3.0, CONTENT_W - 3.1 - 3.6 - 3.0],
     rowH: 0.68, bodyFS: 10.5,
   });
-  bodyText(s, "Les trois derniers indicateurs traduisent la qualité du déploiement du point de vue de l'utilisateur, plutôt qu'un simple respect du cahier des charges technique.", MX, 6.15, CONTENT_W, 0.6, { fontSize: 11.5 });
+  bodyText(s, "Les trois derniers indicateurs traduisent la qualité du déploiement du point de vue de l'utilisateur, plutôt qu'un simple respect du cahier des charges technique.", MX, kpiBottom + 0.15, CONTENT_W, 0.6, { fontSize: 11.5 });
 }
 
 // =========================================================================
@@ -755,10 +781,10 @@ dividerSlide(
     ["Enseignement généralisable", "Ce que ce projet apprend aux autres projets du portefeuille"],
     ["Action sur le référentiel / la méthode", "Mise à jour concrète proposée (modèle, processus, critère de priorisation)"],
   ];
-  dataTable(s, MX, 2.28, CONTENT_W, ["Champ", "Contenu attendu"], rows, {
+  const fcBottom = dataTable(s, MX, 2.28, CONTENT_W, ["Champ", "Contenu attendu"], rows, {
     colW: [3.9, CONTENT_W - 3.9], rowH: 0.62, bodyFS: 12,
   });
-  bodyText(s, "Cette fiche sera complétée à la clôture réelle du projet Authentification forte, prévue fin octobre N.", MX, 5.7, CONTENT_W, 0.4, { fontSize: 12 });
+  bodyText(s, "Cette fiche sera complétée à la clôture réelle du projet Authentification forte, prévue fin octobre N.", MX, fcBottom + 0.15, CONTENT_W, 0.4, { fontSize: 12 });
 }
 
 // =========================================================================

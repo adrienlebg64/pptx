@@ -26,6 +26,9 @@ for si, slide in enumerate(prs.slides, start=1):
             text = shape.text_frame.text[:40].replace("\n", " | ")
         elif shape.has_table:
             text = "[TABLE]"
+            # pptxgenjs writes a nominal frame height that does NOT match the
+            # actual rendered height (sum of row heights) — use the real sum.
+            h = sum(to_in(row.height) for row in shape.table.rows)
         boxes.append((x, y, w, h, label, text))
         # bounds check
         if x < -0.02 or y < -0.02 or (x + w) > SLIDE_W + 0.02 or (y + h) > SLIDE_H + 0.02:
