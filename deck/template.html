@@ -1,1910 +1,1336 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Signal Template</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!--
-      Signal style uses four font families:
-        1. Source Serif 4     — editorial serif for headlines, mixed roman + italic
-        2. DM Sans            — clean grotesque for body, stats numbers
-        3. IBM Plex Mono      — condensed mono labels, chrome, kickers
-        4. Noto Serif SC / Noto Sans SC — Chinese fallbacks for every role
-    -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,600;1,8..60,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-
-    <style>
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE A · TOKENS  —  SIGNAL STYLE                                    ║
-   ║                                                                      ║
-   ║  Replace this block to change the visual style entirely.             ║
-   ║  Every color, font, and size in this file reads from these vars.     ║
-   ║  Never write raw hex values, font names, or px sizes outside here.   ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-      :root {
-        /* ── Palette ──────────────────────────────────────────────────────── */
-        /* Dark navy: intelligence, authority, depth — the editorial tone */
-        --c-bg: #1c2644;
-        /* Slightly lighter navy for secondary dark surfaces */
-        --c-bg-alt: #232f55;
-        /* Warm cream: the light slide background, like aged paper */
-        --c-bg-light: #f0ece3;
-        /* Slightly cooler cream for secondary light surfaces */
-        --c-bg-light-alt: #e6e0d4;
-
-        /* Primary text on dark: warm off-white, never pure white */
-        --c-fg: #e2dcd0;
-        /* Secondary text on dark: muted blue-grey */
-        --c-fg-2: #8a96a8;
-        /* Tertiary / hint text on dark */
-        --c-fg-3: #4e5a6e;
-        /* Primary text on light: very dark navy near-black */
-        --c-fg-light: #1a2030;
-        /* Secondary text on light */
-        --c-fg-light-2: #5a6270;
-        /* Tertiary text on light */
-        --c-fg-light-3: #9aa0a8;
-
-        /* Accent: warm antique gold — the single hot colour; used for italic serif em */
-        --c-accent: #c8a870;
-        /* Dividers on dark: dark navy border */
-        --c-border: #2e3d5c;
-        /* Dividers on light: warm greige border */
-        --c-border-light: #cac4b4;
-
-        /* ── Typography ──────────────────────────────────────────────────── */
-        /* Display + Heading: Source Serif 4 — editorial, authoritative.
-           Mix roman and italic mid-sentence for the Signal look. */
-        --f-display: "Source Serif 4", "Noto Serif SC", Georgia, serif;
-        --f-heading: "Source Serif 4", "Noto Serif SC", Georgia, serif;
-        /* Body: DM Sans — clean grotesque, steps back so the serif leads */
-        --f-body: "DM Sans", "Noto Sans SC", system-ui, sans-serif;
-        /* Mono: IBM Plex Mono — the condensed editorial timestamp */
-        --f-mono: "IBM Plex Mono", "JetBrains Mono", monospace;
-
-        /* ── Type Scale ───────────────────────────────────────────────────── */
-        /* vw units keep all sizes proportional regardless of window width */
-        --sz-display: 9.5vw; /* hero cover title — very large, commanding */
-        --sz-h1: 5.2vw; /* chapter titles */
-        --sz-h2: 3vw; /* slide headlines */
-        --sz-h3: 1.9vw; /* sub-headlines, compare panel titles */
-        --sz-lead: 1.4vw; /* lead paragraph */
-        --sz-body: 1.05vw; /* body text, bullets */
-        --sz-caption: 0.82vw; /* captions, footnotes */
-        --sz-label: 0.7vw; /* chrome, kickers, tags, mono metadata */
-
-        /* ── Spacing ─────────────────────────────────────────────────────── */
-        --pad-x: 7.5vw; /* horizontal slide padding */
-        --pad-y: 5.5vh; /* vertical slide padding */
-        --gap-lg: 4vh; /* between major content sections */
-        --gap-md: 2.5vh; /* between related elements */
-        --gap-sm: 1.2vh; /* between tightly coupled elements */
-
-        /* ── Motion ──────────────────────────────────────────────────────── */
-        /* Slide pan: sharp in, sharp out — deliberate, not springy */
-        --ease-slide: cubic-bezier(0.77, 0, 0.175, 1);
-        --dur-slide: 0.85s;
-        /* Element entrance: spring-y ease-out for content reveals */
-        --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
-        --dur-enter: 0.65s;
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE B · ENGINE — DO NOT MODIFY                                     ║
-   ║                                                                      ║
-   ║  Layout engine, transitions, animation system, navigation.           ║
-   ║  Touching this breaks the mechanics.                                 ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: var(--c-bg);
-        -webkit-font-smoothing: antialiased;
-      }
-
-      /* Deck container — all slides sit side by side in one horizontal strip */
-      #deck {
-        display: flex;
-        height: 100vh;
-        transition: transform var(--dur-slide) var(--ease-slide);
-        will-change: transform;
-      }
-
-      /* Slide base — each slide occupies exactly one full viewport */
-      .slide {
-        flex: 0 0 100vw;
-        width: 100vw;
-        height: 100vh;
-        position: relative;
-        padding: var(--pad-y) var(--pad-x);
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-        overflow: hidden;
-      }
-      .slide-body {
-        min-height: 0;
-      }
-
-      /* Slide themes */
-      .slide.dark {
-        background: var(--c-bg);
-        color: var(--c-fg);
-      }
-      .slide.light {
-        background: var(--c-bg-light);
-        color: var(--c-fg-light);
-      }
-
-      /* ── Animation system ─────────────────────────────────────────────── */
-      /* Elements start invisible; become visible only when slide is active */
-      [data-anim] {
-        opacity: 0;
-      }
-      .slide.is-active [data-anim] {
-        animation-duration: var(--dur-enter);
-        animation-timing-function: var(--ease-enter);
-        animation-fill-mode: forwards;
-      }
-      .slide.is-active [data-anim="fade-up"] {
-        animation-name: kFadeUp;
-      }
-      .slide.is-active [data-anim="fade-in"] {
-        animation-name: kFadeIn;
-      }
-      .slide.is-active [data-anim="reveal-right"] {
-        animation-name: kRevealRight;
-      }
-      .slide.is-active [data-anim="reveal-left"] {
-        animation-name: kRevealLeft;
-      }
-      .slide.is-active [data-anim="scale-in"] {
-        animation-name: kScaleIn;
-      }
-
-      /* Staggered delays via data-delay attribute (0–6) */
-      [data-delay="0"] {
-        animation-delay: 0s;
-      }
-      [data-delay="1"] {
-        animation-delay: 0.08s;
-      }
-      [data-delay="2"] {
-        animation-delay: 0.18s;
-      }
-      [data-delay="3"] {
-        animation-delay: 0.3s;
-      }
-      [data-delay="4"] {
-        animation-delay: 0.44s;
-      }
-      [data-delay="5"] {
-        animation-delay: 0.6s;
-      }
-      [data-delay="6"] {
-        animation-delay: 0.78s;
-      }
-
-      @keyframes kFadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(28px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      @keyframes kFadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      @keyframes kRevealRight {
-        from {
-          clip-path: inset(0 100% 0 0);
-          opacity: 1;
-        }
-        to {
-          clip-path: inset(0 0% 0 0);
-          opacity: 1;
-        }
-      }
-      @keyframes kRevealLeft {
-        from {
-          clip-path: inset(0 0 0 100%);
-          opacity: 1;
-        }
-        to {
-          clip-path: inset(0 0 0 0%);
-          opacity: 1;
-        }
-      }
-      @keyframes kScaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.94);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-
-      /* ── Navigation UI ───────────────────────────────────────────────── */
-      #nav-dots {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 7px;
-        z-index: 100;
-      }
-      .nav-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(255, 255, 255, 0.22);
-        cursor: pointer;
-        transition:
-          background 0.3s,
-          transform 0.3s;
-        padding: 0;
-      }
-      .nav-dot.is-active {
-        background: rgba(255, 255, 255, 0.8);
-        transform: scale(1.4);
-      }
-
-      #slide-counter {
-        position: fixed;
-        bottom: 20px;
-        right: 28px;
-        font-family: var(--f-mono);
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        color: rgba(255, 255, 255, 0.25);
-        z-index: 100;
-        user-select: none;
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE C · TYPOGRAPHY                                                 ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      .display {
-        font-family: var(--f-display);
-        font-size: var(--sz-display);
-        font-weight: 700;
-        line-height: 0.96;
-        letter-spacing: -0.02em;
-      }
-      .h1 {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h1);
-        font-weight: 600;
-        line-height: 1.08;
-        letter-spacing: -0.01em;
-      }
-      .h2 {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h2);
-        font-weight: 600;
-        line-height: 1.18;
-      }
-      .h3 {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h3);
-        font-weight: 500;
-        line-height: 1.3;
-      }
-      .lead {
-        font-family: var(--f-body);
-        font-size: var(--sz-lead);
-        font-weight: 400;
-        line-height: 1.58;
-      }
-      .body {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        font-weight: 400;
-        line-height: 1.65;
-      }
-      .caption {
-        font-family: var(--f-body);
-        font-size: var(--sz-caption);
-        font-weight: 400;
-        line-height: 1.5;
-      }
-      .label {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        font-weight: 500;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-
-      /* Signal signature: italic serif in accent gold for em tags inside headings */
-      .display em,
-      .h1 em,
-      .h2 em,
-      .h3 em {
-        
-        color: var(--c-accent);
-      }
-      .lead em {
-        
-        color: var(--c-accent);
-        font-family: var(--f-heading);
-      }
-
-      .dark .muted {
-        color: var(--c-fg-2);
-      }
-      .light .muted {
-        color: var(--c-fg-light-2);
-      }
-      .accent {
-        color: var(--c-accent);
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE D · CHROME + GRID TEXTURE                                      ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      /* Subtle grid overlay — the Signal visual fingerprint */
-      .slide.dark::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image:
-          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        background-size: 80px 80px;
-        pointer-events: none;
-        z-index: 0;
-      }
-      .slide.dark > * {
-        position: relative;
-        z-index: 1;
-      }
-
-      /* Chrome (top bar) and footer */
-      .slide-chrome,
-      .slide-foot {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .slide-chrome {
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border);
-        margin-bottom: var(--gap-md);
-      }
-      .slide-foot {
-        padding-top: var(--gap-sm);
-        border-top: 1px solid var(--c-border);
-        margin-top: var(--gap-md);
-      }
-      .light .slide-chrome,
-      .light .slide-foot {
-        border-color: var(--c-border-light);
-      }
-
-      /* Special layouts that don't use chrome/foot */
-      .slide--cover .slide-chrome,
-      .slide--cover .slide-foot,
-      .slide--chapter .slide-chrome,
-      .slide--chapter .slide-foot,
-      .slide--quote .slide-chrome,
-      .slide--quote .slide-foot,
-      .slide--end .slide-chrome,
-      .slide--end .slide-foot {
-        display: none;
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE E · LAYOUT PATTERNS                                            ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      /* 1. COVER ─────────────────────────────────────────────────────────── */
-      .slide--cover {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-      }
-      .cover-body {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        justify-content: flex-end;
-        gap: var(--gap-md);
-      }
-      .cover-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-top: var(--gap-lg);
-        padding-top: var(--gap-sm);
-        border-top: 1px solid var(--c-border);
-      }
-      .light .cover-meta {
-        border-color: var(--c-border-light);
-      }
-
-      /* 2. CHAPTER ────────────────────────────────────────────────────────── */
-      .slide--chapter {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .chapter-num {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--c-accent);
-        margin-bottom: var(--gap-md);
-      }
-      .chapter-rule {
-        width: 36px;
-        height: 1px;
-        background: var(--c-accent);
-        margin-bottom: var(--gap-md);
-      }
-
-      /* 3. STATEMENT ──────────────────────────────────────────────────────── */
-      .slide--statement .statement-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-md);
-      }
-
-      /* 4. SPLIT ──────────────────────────────────────────────────────────── */
-      .slide--split .slide-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: calc(var(--pad-x) * 0.7);
-        align-items: center;
-      }
-      .split-text {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .split-image {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-      }
-      .split-image img {
-        width: 100%;
-        height: 55vh;
-        object-fit: cover;
-        display: block;
-      }
-
-      /* 5. STATS ───────────────────────────────────────────────────────────── */
-      .slide--stats .slide-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-lg);
-      }
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0;
-      }
-      .stats-grid.cols-4 {
-        grid-template-columns: repeat(4, 1fr);
-      }
-      .stat-card {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        padding: var(--gap-md) var(--gap-md) var(--gap-md) 0;
-        border-top: 1px solid var(--c-border);
-      }
-      .light .stat-card {
-        border-color: var(--c-border-light);
-      }
-      .stat-value {
-        font-family: var(--f-display);
-        font-size: 5.5vw;
-        font-weight: 600;
-        line-height: 1;
-        color: var(--c-accent);
-        letter-spacing: -0.02em;
-      }
-      .stat-label {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.5;
-      }
-      .stat-note {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.05em;
-        color: var(--c-fg-3);
-      }
-      .light .stat-note {
-        color: var(--c-fg-light-3);
-      }
-
-      /* 6. QUOTE ───────────────────────────────────────────────────────────── */
-      .slide--quote {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: calc(var(--pad-y) * 1.2) calc(var(--pad-x) * 1.1);
-      }
-      .quote-mark {
-        font-family: var(--f-display);
-        font-size: 8vw;
-        line-height: 0.6;
-        color: var(--c-accent);
-        margin-bottom: var(--gap-md);
-        font-weight: 300;
-      }
-      .quote-text {
-        font-family: var(--f-display);
-        font-size: 3.6vw;
-        font-weight: 400;
-        line-height: 1.28;
-        letter-spacing: -0.01em;
-        max-width: 78%;
-        margin-bottom: var(--gap-lg);
-        
-      }
-      .quote-attr {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4vh;
-      }
-
-      /* 7. LIST ────────────────────────────────────────────────────────────── */
-      .slide--list .slide-body {
-        display: grid;
-        grid-template-columns: 2fr 3fr;
-        gap: calc(var(--pad-x) * 0.8);
-        align-items: center;
-      }
-      .list-head {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        padding-top: var(--gap-sm);
-      }
-      .bullet-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .bullet-list li {
-        display: grid;
-        grid-template-columns: 1.2em 1fr;
-        gap: 0.5em;
-        font-family: var(--f-body);
-        font-size: var(--sz-lead);
-        line-height: 1.5;
-      }
-      .bullet-list li::before {
-        content: "—";
-        color: var(--c-accent);
-        font-family: var(--f-mono);
-      }
-      .dark .bullet-list li {
-        color: var(--c-fg);
-      }
-      .light .bullet-list li {
-        color: var(--c-fg-light);
-      }
-
-      /* 8. COMPARE ─────────────────────────────────────────────────────────── */
-      .slide--compare .slide-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        height: 100%;
-      }
-      .compare-panel {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        padding: var(--gap-md) 0;
-      }
-      .compare-panel.left {
-        padding-right: calc(var(--pad-x) * 0.55);
-        border-right: 1px solid var(--c-border);
-      }
-      .compare-panel.right {
-        padding-left: calc(var(--pad-x) * 0.55);
-      }
-      .light .compare-panel.left {
-        border-color: var(--c-border-light);
-      }
-      .compare-label {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border);
-      }
-      .compare-label.after {
-        color: var(--c-accent);
-      }
-      .light .compare-label {
-        border-color: var(--c-border-light);
-      }
-
-      /* 9. END ─────────────────────────────────────────────────────────────── */
-      .slide--end {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-md);
-      }
-
-      /* 10. EDITORIAL — Editorial newsletter style ─────────────────── */
-      .slide--editorial {
-        grid-template-rows: auto auto auto 1fr auto;
-      }
-      .editorial-stamp {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.22em;
-        color: var(--c-fg-3);
-      }
-      .editorial-stamp .accent {
-        color: var(--c-accent);
-      }
-      .editorial-hl {
-        font-family: var(--f-heading);
-        font-size: 2.75vw;
-        font-weight: 600;
-        line-height: 1.2;
-        padding-bottom: var(--gap-md);
-        border-bottom: 1px solid var(--c-border);
-      }
-      .editorial-hl em {
-        
-        color: var(--c-accent);
-      }
-      .light .editorial-hl {
-        border-color: var(--c-border-light);
-      }
-
-      /* Two-column layout */
-      .editorial-cols {
-        display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 0;
-        min-height: 0;
-      }
-      .editorial-col-left {
-        padding-right: calc(var(--pad-x) * 0.38);
-        border-right: 1px solid var(--c-border);
-        display: flex;
-        flex-direction: column;
-      }
-      .editorial-col-right {
-        padding-left: calc(var(--pad-x) * 0.38);
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .light .editorial-col-left {
-        border-color: var(--c-border-light);
-      }
-      .editorial-col-head {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.18em;
-        color: var(--c-fg-3);
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border);
-        margin-bottom: var(--gap-sm);
-      }
-      .light .editorial-col-head {
-        border-color: var(--c-border-light);
-        color: var(--c-fg-light-3);
-      }
-
-      /* Date log in left column */
-      .log-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.4vh;
-        flex: 1;
-      }
-      .log-row {
-        display: grid;
-        grid-template-columns: 5em 1fr;
-        gap: 1em;
-        align-items: baseline;
-      }
-      .log-dt {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-        white-space: nowrap;
-      }
-      .log-dd {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.52;
-      }
-      .log-dd em {
-        
-        color: var(--c-accent);
-        font-family: var(--f-heading);
-      }
-
-      /* 2x2 mixed-font stat grid in right column */
-      .stat-4 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-      }
-      .stat-4-cell {
-        border-top: 1px solid var(--c-border);
-        padding: 1.2vh 0 1.5vh 0;
-      }
-      .stat-4-cell:nth-child(even) {
-        border-left: 1px solid var(--c-border);
-        padding-left: 1.8vh;
-      }
-      .light .stat-4-cell {
-        border-color: var(--c-border-light);
-      }
-      /* Value: roman grotesque number (DM Sans 700) + italic serif suffix (Source Serif 4 italic) */
-      .stat-4-val {
-        font-family: var(--f-body);
-        font-size: 2.5vw;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--c-fg);
-        margin-bottom: 0.5vh;
-        letter-spacing: -0.02em;
-      }
-      .stat-4-val em {
-        font-family: var(--f-display);
-        
-        color: var(--c-accent);
-        font-weight: 600;
-      }
-      .stat-4-label {
-        font-family: var(--f-mono);
-        font-size: 0.62vw;
-        letter-spacing: 0.07em;
-        color: var(--c-fg-3);
-        line-height: 1.4;
-        text-transform: uppercase;
-      }
-      .light .stat-4-label {
-        color: var(--c-fg-light-3);
-      }
-
-      /* Analysis line below columns */
-      .editorial-analysis {
-        font-family: var(--f-body);
-        font-size: 0.88vw;
-        line-height: 1.72;
-        color: var(--c-fg-2);
-        border-top: 1px solid var(--c-border);
-        padding-top: var(--gap-sm);
-      }
-      .light .editorial-analysis {
-        border-color: var(--c-border-light);
-        color: var(--c-fg-light-2);
-      }
-
-      /* 11. DENSE — Two-column editorial text ─────────────────────────────── */
-      .slide--dense {
-        grid-template-rows: auto auto 1fr auto;
-      }
-      .dense-hl {
-        font-family: var(--f-heading);
-        font-size: 2.4vw;
-        font-weight: 600;
-        line-height: 1.2;
-        padding-bottom: var(--gap-md);
-        border-bottom: 1px solid var(--c-border);
-        max-width: 88%;
-      }
-      .dense-hl em {
-        
-        color: var(--c-accent);
-      }
-      .light .dense-hl {
-        border-color: var(--c-border-light);
-      }
-      .dense-cols {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: calc(var(--pad-x) * 0.45);
-        padding-top: var(--gap-md);
-        min-height: 0;
-      }
-      .dense-col h4 {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.16em;
-        color: var(--c-fg-3);
-        margin-bottom: var(--gap-sm);
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border);
-      }
-      .light .dense-col h4 {
-        border-color: var(--c-border-light);
-        color: var(--c-fg-light-3);
-      }
-      .dense-col p {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.72;
-        color: var(--c-fg-2);
-        margin-bottom: 1.4vh;
-      }
-      .light .dense-col p {
-        color: var(--c-fg-light-2);
-      }
-      .dense-col p:last-child {
-        margin-bottom: 0;
-      }
-      .dense-col p em {
-        
-        color: var(--c-accent);
-        font-family: var(--f-heading);
-      }
-
-      /* 12. FULLBLEED ──────────────────────────────────────────────────────── */
-      .slide--fullbleed {
-        padding: 0;
-        display: block;
-        position: relative;
-      }
-      .slide--fullbleed::before {
-        display: none !important;
-      }
-      .fb-img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .fb-content {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: var(--pad-y) var(--pad-x);
-        background: linear-gradient(
-          to bottom,
-          transparent 0%,
-          rgba(15, 20, 36, 0.9) 35%
-        );
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE F · COMPONENTS                                                 ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      /* Decorative rule lines */
-      .rule {
-        width: 36px;
-        height: 1px;
-        background: var(--c-accent);
-      }
-      .rule.full {
-        width: 100%;
-        background: var(--c-border);
-      }
-      .light .rule.full {
-        background: var(--c-border-light);
-      }
-
-      /* Kicker label (above headlines) */
-      .kicker {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--c-accent);
-      }
-
-      /* Outlined tag */
-      .tag {
-        display: inline-block;
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--c-accent);
-        border: 1px solid var(--c-accent);
-        padding: 0.3em 0.8em;
-        line-height: 1;
-      }
-
-      /* Image caption */
-      .img-caption {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.04em;
-        opacity: 0.5;
-        margin-top: 0.8vh;
-      }
-      /* ── CHART ─────────────────────────────────────────────────────────── */
-      .slide--chart .slide-body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        min-height: 0;
-      }
-      .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        flex-shrink: 0;
-      }
-      .chart-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        min-height: 0;
-      }
-      .bar-track {
-        height: 30vh;
-        display: flex;
-        align-items: flex-end;
-        gap: 4vw;
-        border-left: 1px solid var(--c-border);
-        padding-left: 0.5vw;
-      }
-      .light .bar-track {
-        border-color: var(--c-border-light);
-      }
-      .bar-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-end;
-        gap: 1vh;
-        height: 100%;
-      }
-      .bar-fill {
-        width: 100%;
-        background: var(--c-fg-3);
-      }
-      .bar-fill.accent {
-        background: var(--c-accent);
-      }
-      .light .bar-fill {
-        background: var(--c-fg-light-3);
-      }
-      .light .bar-fill.accent {
-        background: var(--c-accent);
-      }
-      .bar-x-label {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-        white-space: nowrap;
-        text-transform: uppercase;
-      }
-      .light .bar-x-label {
-        color: var(--c-fg-light-3);
-      }
-      .bar-val {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        font-weight: 500;
-        color: var(--c-fg-2);
-      }
-      .bar-val.hi {
-        color: var(--c-accent);
-        font-weight: 600;
-      }
-      .light .bar-val {
-        color: var(--c-fg-light-2);
-      }
-      .chart-baseline {
-        height: 1px;
-        background: var(--c-border);
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      .light .chart-baseline {
-        background: var(--c-border-light);
-      }
-      .chart-source {
-        flex-shrink: 0;
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        color: var(--c-fg-3);
-        letter-spacing: 0.06em;
-        margin-top: var(--gap-sm);
-      }
-      .light .chart-source {
-        color: var(--c-fg-light-3);
-      }
-
-      /* ── DIAGRAM ────────────────────────────────────────────────────────── */
-      .slide--diagram .slide-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-lg);
-        min-height: 0;
-      }
-      .flow {
-        display: flex;
-        align-items: stretch;
-        gap: 0;
-      }
-      .flow-step {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        padding-right: calc(var(--pad-x) * 0.35);
-      }
-      .flow-num {
-        font-family: var(--f-display);
-        font-size: 4.5vw;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--c-accent);
-        letter-spacing: -0.02em;
-        
-      }
-      .flow-title {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h3);
-        font-weight: 600;
-        line-height: 1.15;
-        color: var(--c-fg);
-      }
-      .light .flow-title {
-        color: var(--c-fg-light);
-      }
-      .flow-desc {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        color: var(--c-fg-2);
-        line-height: 1.62;
-      }
-      .light .flow-desc {
-        color: var(--c-fg-light-2);
-      }
-      .flow-arrow {
-        display: flex;
-        align-items: flex-start;
-        padding-top: 1em;
-        padding-right: calc(var(--pad-x) * 0.35);
-        font-size: 2vw;
-        color: var(--c-border);
-        flex-shrink: 0;
-      }
-      .light .flow-arrow {
-        color: var(--c-border-light);
-      }
-
-      /* ── PIE / DONUT CHART ──────────────────────────────────────────────── */
-      .slide--pie .slide-body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        min-height: 0;
-      }
-      .pie-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: calc(var(--pad-x) * 0.7);
-        align-items: center;
-        flex: 1;
-        min-height: 0;
-      }
-      .pie-donut {
-        width: min(26vw, 42vh);
-        height: min(26vw, 42vh);
-        border-radius: 50%;
-        position: relative;
-        flex-shrink: 0;
-        justify-self: center;
-      }
-      .pie-donut::after {
-        content: "";
-        position: absolute;
-        inset: 22%;
-        border-radius: 50%;
-        background: var(--c-bg);
-      }
-      .pie-legend {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .pie-item {
-        display: grid;
-        grid-template-columns: 0.8em 1fr auto;
-        gap: 1em;
-        align-items: center;
-      }
-      .pie-swatch {
-        width: 0.8em;
-        height: 0.8em;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
-      .pie-item-label {
-        font-family: var(--f-body);
-        font-size: var(--sz-lead);
-        line-height: 1.4;
-      }
-      .pie-item-val {
-        font-family: var(--f-mono);
-        font-size: var(--sz-body);
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        color: var(--c-accent);
-      }
-      .pie-total {
-        margin-top: var(--gap-sm);
-        padding-top: var(--gap-sm);
-        border-top: 1px solid var(--c-border);
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-      }
-      .light .pie-donut::after {
-        background: var(--c-bg-light);
-      }
-      .light .pie-total {
-        border-color: var(--c-border-light);
-        color: var(--c-fg-light-3);
-      }
-
-      /* ── PYRAMID ─────────────────────────────────────────────────────────── */
-      .slide--pyramid .slide-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-md);
-        min-height: 0;
-      }
-      .pyramid {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        align-items: center;
-      }
-      .pyr-level {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.3vh 2.5vw;
-        border-left: 3px solid var(--c-accent);
-        transition: width 0.3s;
-      }
-      .pyr-level:nth-child(1) {
-        background: color-mix(in srgb, var(--c-accent) 70%, var(--c-bg));
-        width: 38%;
-      }
-      .pyr-level:nth-child(2) {
-        background: color-mix(in srgb, var(--c-accent) 45%, var(--c-bg));
-        width: 54%;
-      }
-      .pyr-level:nth-child(3) {
-        background: color-mix(in srgb, var(--c-accent) 27%, var(--c-bg));
-        width: 70%;
-      }
-      .pyr-level:nth-child(4) {
-        background: color-mix(in srgb, var(--c-accent) 15%, var(--c-bg));
-        width: 86%;
-      }
-      .pyr-level:nth-child(5) {
-        background: color-mix(in srgb, var(--c-accent) 8%, var(--c-bg));
-        width: 100%;
-      }
-      .pyr-name {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h3);
-        font-weight: 500;
-        line-height: 1.2;
-      }
-      .pyr-desc {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        color: var(--c-fg-2);
-        text-align: right;
-        max-width: 55%;
-        line-height: 1.4;
-      }
-
-      /* ── VERTICAL TIMELINE ───────────────────────────────────────────────── */
-      .slide--vtimeline {
-        grid-template-rows: auto auto 1fr auto;
-      }
-      .vt-hl {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h2);
-        font-weight: 600;
-        padding-bottom: var(--gap-md);
-        border-bottom: 1px solid var(--c-border);
-      }
-      .light .vt-hl {
-        border-color: var(--c-border-light);
-      }
-      .vtimeline {
-        display: grid;
-        grid-template-columns: 8em 1px 1fr;
-        gap: 0;
-        min-height: 0;
-        padding-top: var(--gap-md);
-      }
-      .vt-date {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.08em;
-        color: var(--c-fg-3);
-        text-align: right;
-        padding: 0 1.5vw 3.5vh 0;
-        line-height: 1.4;
-      }
-      .light .vt-date {
-        color: var(--c-fg-light-3);
-      }
-      .vt-spine {
-        background: var(--c-border);
-        position: relative;
-      }
-      .light .vt-spine {
-        background: var(--c-border-light);
-      }
-      .vt-spine::before {
-        content: "";
-        position: absolute;
-        top: 0.25em;
-        left: -4px;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--c-accent);
-      }
-      .vt-content {
-        padding: 0 0 3.5vh 1.5vw;
-      }
-      .vt-title {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h3);
-        font-weight: 500;
-        margin-bottom: 0.6vh;
-        line-height: 1.25;
-      }
-      .vt-body {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        color: var(--c-fg-2);
-        line-height: 1.65;
-      }
-      .light .vt-body {
-        color: var(--c-fg-light-2);
-      }
-      .vt-body em {
-        
-        color: var(--c-accent);
-        font-family: var(--f-heading);
-      }
-
-      /* ── CYCLE PROCESS ───────────────────────────────────────────────────── */
-      .slide--cycle .slide-body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        min-height: 0;
-      }
-      .cycle-grid {
-        display: grid;
-        grid-template-columns: 1fr 3em 1fr;
-        grid-template-rows: 1fr 3em 1fr;
-        gap: var(--gap-sm);
-        flex: 1;
-        min-height: 0;
-        align-items: center;
-      }
-      .cycle-step {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        padding: var(--gap-md);
-        border-top: 2px solid var(--c-accent);
-      }
-      .cycle-num {
-        font-family: var(--f-display);
-        font-size: 3.2vw;
-        font-weight: 700;
-        color: var(--c-accent);
-        line-height: 1;
-        letter-spacing: -0.02em;
-      }
-      .cycle-title {
-        font-family: var(--f-heading);
-        font-size: var(--sz-h3);
-        font-weight: 500;
-        line-height: 1.2;
-      }
-      .cycle-desc {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        color: var(--c-fg-2);
-        line-height: 1.6;
-      }
-      .light .cycle-desc {
-        color: var(--c-fg-light-2);
-      }
-      .cycle-arrow {
-        color: var(--c-fg-3);
-        font-size: 1.8vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .light .cycle-arrow {
-        color: var(--c-fg-light-3);
-      }
-      .cycle-corner {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--c-fg-3);
-        font-size: 1.3vw;
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE G · CUSTOM EXTENSIONS — TIME'EATS DECK                          ║
-   ║                                                                      ║
-   ║  Built from Signal's own vocabulary (hairlines, mono labels, single  ║
-   ║  gold accent, no shadows/radius) to cover layouts the 18-slide demo  ║
-   ║  did not include: dense data tables, a 6-step cycle, a 4-tool loop.  ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      /* ── Dense data tables (référentiels, budgets, risques, PV de recette) ── */
-      .data-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .data-table th,
-      .data-table td {
-        text-align: left;
-        vertical-align: top;
-        padding: 0.8vh 1vw 0.8vh 0;
-        border-bottom: 1px solid var(--c-border);
-      }
-      .light .data-table th,
-      .light .data-table td {
-        border-color: var(--c-border-light);
-      }
-      .data-table thead th {
-        font-family: var(--f-mono);
-        font-size: 0.66vw;
-        font-weight: 500;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--c-fg-3);
-        border-bottom: 1px solid var(--c-fg-3);
-        padding-bottom: 0.6vh;
-      }
-      .light .data-table thead th {
-        color: var(--c-fg-light-3);
-        border-color: var(--c-fg-light-3);
-      }
-      .data-table tbody td {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.42;
-        color: var(--c-fg);
-      }
-      .light .data-table tbody td {
-        color: var(--c-fg-light);
-      }
-      .data-table tbody td.num {
-        font-family: var(--f-mono);
-        color: var(--c-fg-2);
-        text-align: center;
-        white-space: nowrap;
-      }
-      .light .data-table tbody td.num {
-        color: var(--c-fg-light-2);
-      }
-      .data-table tr.tr-accent td {
-        background: color-mix(in srgb, var(--c-accent) 16%, transparent);
-        font-weight: 600;
-      }
-      .data-table tr.tr-accent td:first-child {
-        border-left: 3px solid var(--c-accent);
-        padding-left: calc(1vw - 3px);
-      }
-      .data-table tr.tr-total td {
-        border-top: 1px solid var(--c-fg-3);
-        border-bottom: none;
-        font-weight: 600;
-      }
-      .light .data-table tr.tr-total td {
-        border-top-color: var(--c-fg-light-3);
-      }
-      .data-table.dense th,
-      .data-table.dense td {
-        font-size: var(--sz-caption);
-        padding: 0.48vh 0.8vw 0.48vh 0;
-      }
-      .data-table.dense thead th {
-        font-size: 0.58vw;
-        padding-bottom: 0.45vh;
-      }
-      .table-caption {
-        display: block;
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--c-accent);
-        margin-bottom: 0.9vh;
-      }
-
-      /* ── Two blocks side by side (tables, text) sharing one hairline spine ── */
-      .dual-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        min-height: 0;
-      }
-      .dual-col > div:first-child {
-        padding-right: calc(var(--pad-x) * 0.5);
-        border-right: 1px solid var(--c-border);
-      }
-      .light .dual-col > div:first-child {
-        border-color: var(--c-border-light);
-      }
-      .dual-col > div:last-child {
-        padding-left: calc(var(--pad-x) * 0.5);
-      }
-
-      /* ── Dense 3-column variant of the editorial dense-cols pattern ── */
-      .dense-cols-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: calc(var(--pad-x) * 0.4);
-        padding-top: var(--gap-md);
-        min-height: 0;
-      }
-      .dense-cols-3 .dense-col:not(:last-child) {
-        padding-right: calc(var(--pad-x) * 0.35);
-        border-right: 1px solid var(--c-border);
-      }
-      .light .dense-cols-3 .dense-col:not(:last-child) {
-        border-color: var(--c-border-light);
-      }
-      .dense-col.compact p {
-        font-size: var(--sz-caption);
-        line-height: 1.55;
-        margin-bottom: 0.8vh;
-      }
-
-      /* ── Mini cycle row — extends cycle-step to a 6-phase linear sequence ── */
-      .cycle-row {
-        display: flex;
-        align-items: stretch;
-        gap: 0;
-      }
-      .cycle-mini {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.9vh;
-      }
-      .cycle-mini-badge {
-        width: 1.8vw;
-        height: 1.8vw;
-        min-width: 24px;
-        min-height: 24px;
-        border-radius: 50%;
-        border: 1px solid var(--c-accent);
-        color: var(--c-accent);
-        font-family: var(--f-mono);
-        font-size: 0.72vw;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .cycle-mini-card {
-        width: 100%;
-        border-top: 2px solid var(--c-accent);
-        padding: 1vh 0.4vw 0 0.4vw;
-        text-align: center;
-      }
-      .cycle-mini-title {
-        font-family: var(--f-heading);
-        font-size: 0.92vw;
-        font-weight: 500;
-        line-height: 1.25;
-      }
-      .cycle-mini-arrow {
-        display: flex;
-        align-items: center;
-        color: var(--c-fg-3);
-        font-size: 1vw;
-        padding: 0 0.2vw;
-        flex-shrink: 0;
-      }
-      .light .cycle-mini-arrow {
-        color: var(--c-fg-light-3);
-      }
-
-      /* ── Method blocks row (PMI / PRINCE2 / Agile) ── */
-      .method-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: calc(var(--pad-x) * 0.4);
-      }
-      .method-block {
-        border-top: 2px solid var(--c-accent);
-        padding-top: var(--gap-sm);
-        display: flex;
-        flex-direction: column;
-        gap: 0.5vh;
-      }
-      .method-title {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--c-accent);
-      }
-      .method-desc {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.5;
-        color: var(--c-fg-2);
-      }
-      .light .method-desc {
-        color: var(--c-fg-light-2);
-      }
-
-      /* ── Tinted callout — synthesis boxes, COPIL asks, scoring rules ── */
-      .callout {
-        background: color-mix(in srgb, var(--c-accent) 14%, var(--c-bg));
-        border-left: 3px solid var(--c-accent);
-        padding: var(--gap-sm) var(--gap-md);
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        line-height: 1.5;
-      }
-      .light .callout {
-        background: color-mix(in srgb, var(--c-accent) 14%, var(--c-bg-light));
-      }
-      .callout strong {
-        color: var(--c-accent);
-        font-weight: 600;
-      }
-
-      /* ── Loop-back indicator beneath a 4-step flow (capitalisation cycle) ── */
-      .loop-back {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.6em;
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.06em;
-        color: var(--c-fg-3);
-        border-top: 1px dashed var(--c-border);
-        padding-top: var(--gap-sm);
-      }
-      .light .loop-back {
-        color: var(--c-fg-light-3);
-        border-color: var(--c-border-light);
-      }
-      .loop-back .icon {
-        font-size: 1.6em;
-        line-height: 1;
-        color: var(--c-accent);
-      }
-      .loop-back .accent {
-        color: var(--c-accent);
-      }
-
-      /* ── Compact horizontal log (J1–J4 style day-by-day breakdown) ── */
-      .mini-log-row4 {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-      }
-      .mini-log-cell {
-        border-top: 1px solid var(--c-border);
-        padding: 1vh 1.2vw 0 0;
-      }
-      .light .mini-log-cell {
-        border-color: var(--c-border-light);
-      }
-      .mini-log-cell:not(:first-child) {
-        border-left: 1px solid var(--c-border);
-        padding-left: 1.2vw;
-      }
-      .light .mini-log-cell:not(:first-child) {
-        border-color: var(--c-border-light);
-      }
-      .mini-log-dt {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.1em;
-        color: var(--c-accent);
-        margin-bottom: 0.6vh;
-        display: block;
-      }
-      .mini-log-dd {
-        font-family: var(--f-body);
-        font-size: var(--sz-caption);
-        line-height: 1.5;
-        color: var(--c-fg-2);
-      }
-      .light .mini-log-dd {
-        color: var(--c-fg-light-2);
-      }
-
-      /* ── Small italic warning note (personalization reminders) ── */
-      .warn-note {
-        font-family: var(--f-body);
-        font-style: italic;
-        font-size: var(--sz-caption);
-        color: var(--c-accent);
-        line-height: 1.5;
-      }
-
-      /* ── Compact bullet list variant for dense slides ── */
-      .bullet-list.compact li {
-        font-size: var(--sz-body);
-        line-height: 1.4;
-      }
-      .bullet-list.tight li {
-        font-size: var(--sz-caption);
-        line-height: 1.4;
-      }
-    </style>
-  </head>
-
-  <body>
-    <!-- NAV DOTS: generated by JS -->
-    <nav id="nav-dots"></nav>
-    <!-- SLIDE COUNTER: generated by JS -->
-    <div id="slide-counter"></div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         DECK — all slides live here, side by side
-         ═══════════════════════════════════════════════════════════════════════ -->
-    <div id="deck">
-      <!-- ═══════ SLIDE 1 · COVER dark ══════════════════════════════════════ -->
-      <section class="slide dark slide--cover">
-        <div class="cover-body">
-          <div class="label muted" data-anim="fade-in" data-delay="0">
-            Direction Générale · Comité de pilotage (COPIL) SI
-          </div>
-          <div class="rule" data-anim="reveal-right" data-delay="1"></div>
-          <h1 class="display" data-anim="fade-up" data-delay="2">
-            Superviser le <em>portefeuille</em><br />projets de la DSI
-          </h1>
-          <p
-            class="lead"
-            style="font-family: var(--f-heading); max-width: 58%; color: var(--c-fg-2)"
-            data-anim="fade-up"
-            data-delay="3"
-          >
-            Zoom projet : mise en place de l'authentification forte des utilisateurs internes — CESI École d'Ingénieurs, Projet Expérientiel Collaboratif.
-          </p>
-          <div class="cover-meta" data-anim="fade-in" data-delay="4">
-            <span class="label muted">Cellule PMO — DSI Time'Eats · [Prénom NOM] · [Prénom NOM] · [Prénom NOM]</span>
-            <span class="label muted">PMO-TE-COLLAB-2026 · V1.0</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 2 · SOMMAIRE light ══════════════════════════════════ -->
-      <section class="slide light slide--list">
-        <div class="slide-chrome">
-          <span class="label muted">Sommaire</span>
-          <span class="label muted">02 / 25</span>
-        </div>
-        <div class="slide-body">
-          <div class="list-head">
-            <span class="kicker">Sommaire</span>
-            <h2 class="h2">Ce que ce support présente</h2>
-            <p class="lead muted">
-              Quatre parties, de la définition du portefeuille jusqu'à la capitalisation, complétées par l'organisation du groupe et le bilan.
-            </p>
-          </div>
-          <ul class="bullet-list">
-            <li>01 — Contexte et mission de la cellule PMO</li>
-            <li>02 — Définir, prioriser et faire vivre le portefeuille de projets</li>
-            <li>03 — Superviser et conduire le projet sélectionné : authentification forte des utilisateurs internes</li>
-            <li>04 — Clore le projet et capitaliser l'expérience</li>
-            <li>05 — Organisation du groupe et bilan</li>
-          </ul>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">02 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 3 · CONTEXTE dark (custom: text + stats) ═══════════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">01 · Contexte</span>
-          <span class="label muted">03 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; justify-content:center; gap: var(--gap-lg);">
-          <div style="display:flex; flex-direction:column; gap: var(--gap-md); max-width: 88%;">
-            <h2 class="h2">Time'Eats et la mission confiée à la cellule PMO</h2>
-            <p class="lead muted">
-              Time'Eats vend de la nourriture préparée et lance la livraison à domicile, avec un réseau de traiteurs et de chefs partenaires. Ambition de la Direction : un million de nouveaux clients et dix mille restaurants ou traiteurs partenaires en deux ans, pour devenir un acteur reconnu en France à cinq ans — sans concurrencer directement les grandes plateformes internationales.
-            </p>
-            <p class="lead muted">
-              Pour tenir ce rythme, la DSI doit livrer beaucoup en peu de temps — application web, applications mobiles, CRM, sécurité renforcée. Onze projets sont lancés ou à lancer sur l'année, pilotés par une cellule PMO de cinq chefs de projet tout juste créée. La Direction nous a demandé de structurer le pilotage du portefeuille avant qu'un projet n'échoue faute d'organisation.
-            </p>
-          </div>
-          <div class="stats-grid cols-4">
-            <div class="stat-card">
-              <div class="stat-value">200</div>
-              <div class="stat-label">salariés dans l'entreprise</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">21</div>
-              <div class="stat-label">collaborateurs à la DSI</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">11</div>
-              <div class="stat-label">projets dans le portefeuille DSI</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">25 %</div>
-              <div class="stat-label">de part de marché visée à 5 ans</div>
-            </div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">03 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 4 · CHAPTER dark — PARTIE 1 ═════════════════════════ -->
-      <section class="slide dark slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">Partie 1 · 01</div>
-        <div class="chapter-rule" data-anim="reveal-right" data-delay="1"></div>
-        <h1 class="h1" style="max-width: 72%; margin-bottom: var(--gap-md);" data-anim="fade-up" data-delay="2">
-          Définir, prioriser et faire vivre le portefeuille de <em>projets</em>
-        </h1>
-        <p class="lead muted" style="max-width: 56%;" data-anim="fade-up" data-delay="3">
-          Harmoniser le processus de management, bâtir un référentiel documentaire commun, et prioriser objectivement les 11 projets du portefeuille DSI.
-        </p>
-      </section>
-
-      <!-- ═══════ SLIDE 5 · 1.1 CYCLE + MÉTHODES dark (custom) ══════════════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 1 · 1.1</span>
-          <span class="label muted">05 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: var(--gap-md); min-height:0;">
-          <div style="display:flex; flex-direction:column; gap: 1vh;">
-            <h2 class="h2" style="font-size: 2.3vw;">Harmoniser le processus de management des projets</h2>
-            <p class="body muted" style="max-width: 82%;">
-              Avant la cellule PMO, chaque chef de projet gérait son projet à sa manière. Nous retenons une trame commune, construite à partir de trois référentiels reconnus, adaptée à la taille des projets de Time'Eats plutôt qu'appliquée à la lettre.
-            </p>
-          </div>
-          <span class="kicker" style="margin-top: 0.5vh;">Figure 1 — Cycle de vie commun en 6 phases</span>
-          <div class="cycle-row">
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">1</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Cadrage &amp; lancement</div></div>
-            </div>
-            <div class="cycle-mini-arrow">→</div>
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">2</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Conception / paramétrage</div></div>
-            </div>
-            <div class="cycle-mini-arrow">→</div>
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">3</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Réalisation</div></div>
-            </div>
-            <div class="cycle-mini-arrow">→</div>
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">4</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Recette</div></div>
-            </div>
-            <div class="cycle-mini-arrow">→</div>
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">5</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Déploiement</div></div>
-            </div>
-            <div class="cycle-mini-arrow">→</div>
-            <div class="cycle-mini">
-              <div class="cycle-mini-badge">6</div>
-              <div class="cycle-mini-card"><div class="cycle-mini-title">Clôture &amp; stabilisation</div></div>
-            </div>
-          </div>
-          <div class="method-row" style="margin-top: 0.5vh;">
-            <div class="method-block">
-              <span class="method-title">PMI (PMBOK)</span>
-              <p class="method-desc">Sert d'ossature : découpage en phases et rubriques du plan de management (charte, budget, planning, risques).</p>
-            </div>
-            <div class="method-block">
-              <span class="method-title">PRINCE2</span>
-              <p class="method-desc">Inspire la gouvernance : un comité valide chaque jalon avant de passer à la phase suivante (logique de « Go / No-Go »).</p>
-            </div>
-            <div class="method-block">
-              <span class="method-title">Agile (Scrum)</span>
-              <p class="method-desc">S'applique pendant la réalisation des projets applicatifs (CRM, applis mobiles, refonte web), par sprints courts.</p>
-            </div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Un projet d'infrastructure suit la même trame, sans les sprints Agile</span>
-          <span class="label muted">05 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 6 · 1.2 RÉFÉRENTIEL DOCUMENTAIRE light (custom) ═════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 1 · 1.2</span>
-          <span class="label muted">06 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: var(--gap-md); min-height:0;">
-          <div>
-            <h2 class="h2" style="font-size: 2.3vw;">Le référentiel documentaire commun</h2>
-            <p class="body muted" style="margin-top: 0.6vh;">Dix documents types couvrent l'ensemble du cycle de vie d'un projet IT, du cadrage à la capitalisation.</p>
-          </div>
-          <div class="dual-col">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentation Template</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #fdfae7;
+      --primary: #1e2bfa;
+      --text: #111111;
+      --text-muted: #6b6b6b;
+      --text-light: #9a9a9a;
+      --accent-light: rgba(30, 43, 250, 0.08);
+      --accent-medium: rgba(30, 43, 250, 0.15);
+      --border: rgba(30, 43, 250, 0.2);
+      --card-bg: rgba(30, 43, 250, 0.04);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Slide container */
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* Asymmetric padding: extra bottom space to clear the fixed
+         slide-counter (left) and nav-controls (right). Without this,
+         cards/grids that fill slide-content overlap the nav chrome. */
+      padding: 3.5vw 4vw 8.5vh 4vw;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(40px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+      z-index: 10;
+    }
+
+    .slide.prev {
+      transform: translateX(-40px);
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 5vw, 4.2rem);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      margin-bottom: 1.5rem;
+    }
+
+    h3 {
+      font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    h4 {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+    }
+
+    p, li {
+      font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* Slide header bar */
+    .slide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5vh;
+      flex-shrink: 0;
+    }
+
+    .slide-header h4 {
+      margin: 0;
+    }
+
+    .slide-header .tag {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--primary);
+      background: var(--accent-light);
+      padding: 0.35rem 0.9rem;
+      border-radius: 100px;
+    }
+
+    /* Slide content area */
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* Navigation */
+    .nav-controls {
+      position: fixed;
+      bottom: 2.5vh;
+      right: 3vw;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 1.1rem;
+    }
+
+    .nav-btn:hover {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .slide-counter {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      position: fixed;
+      bottom: 2.5vh;
+      left: 3vw;
+      z-index: 100;
+    }
+
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--primary);
+      transition: width 0.4s ease;
+      z-index: 100;
+    }
+
+    /* Decorative elements */
+    .accent-line {
+      width: 60px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+    }
+
+    .accent-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ============================================================
+       LAYOUT 1: Cover / Title Slide
+       ============================================================ */
+    .layout-cover {
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 8vw;
+    }
+
+    .layout-cover h1 {
+      max-width: 55vw;
+      margin-bottom: 1.5rem;
+      line-height: 1.05;
+    }
+
+    .layout-cover .subtitle {
+      font-size: clamp(1rem, 1.5vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 40vw;
+      margin-bottom: 3rem;
+      font-weight: 400;
+    }
+
+    .layout-cover .meta {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      letter-spacing: 0.05em;
+    }
+
+    .layout-cover .cover-decoration {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 35vw;
+      height: 100vh;
+      background: var(--accent-light);
+      clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+    }
+
+    .layout-cover .cover-dots {
+      position: absolute;
+      bottom: 12vh;
+      right: 8vw;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      opacity: 0.25;
+    }
+
+    .layout-cover .cover-dots .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    /* ============================================================
+       LAYOUT 2: Agenda / Table of Contents
+       ============================================================ */
+    .layout-agenda .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 1rem 3rem;
+      margin-top: 1rem;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .agenda-item {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      transition: background 0.2s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .agenda-item:hover {
+      background: var(--card-bg);
+    }
+
+    .agenda-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      min-width: 36px;
+    }
+
+    .agenda-item h3 {
+      margin-bottom: 0.3rem;
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+    }
+
+    .agenda-item p {
+      font-size: clamp(0.8rem, 1vw, 0.95rem);
+      line-height: 1.5;
+    }
+
+    /* ============================================================
+       LAYOUT 3: Key Metrics (3 large callouts)
+       Cards size to their content; the row centers vertically
+       inside the remaining slide-content area.
+       ============================================================ */
+    .layout-metrics .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-metrics .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+      align-items: stretch;
+    }
+
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      padding: 1.5rem 1.6rem;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--card-bg);
+    }
+
+    .metric-card .metric-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.2rem, 3.4vw, 3rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .metric-card .metric-label {
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .metric-card .metric-desc {
+      font-size: clamp(0.78rem, 0.95vw, 0.9rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .metric-card .metric-supports {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin: 0.2rem 0 0;
+      padding: 0.7rem 0 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .metric-card .metric-supports li {
+      font-size: clamp(0.75rem, 0.9vw, 0.85rem);
+      color: var(--text-muted);
+      padding-left: 1rem;
+      position: relative;
+      line-height: 1.45;
+    }
+
+    .metric-card .metric-supports li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-light);
+    }
+
+    .metric-card .metric-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 0.3rem;
+    }
+
+    .metric-change.positive { color: #059669; }
+    .metric-change.negative { color: #dc2626; }
+
+    /* ============================================================
+       LAYOUT 4: Data Dashboard (6 stat grid)
+       Cells have natural height with stat at top + name + small
+       context line. Grid is auto-sized; the row stays in the upper
+       portion of slide-content with the bottom-padding reserved
+       for nav chrome.
+       ============================================================ */
+    .layout-dashboard .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-dashboard .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.4rem 1.5rem;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .stat-cell .stat-top {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .stat-cell .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .stat-cell .stat-unit {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .stat-cell .stat-name {
+      font-size: clamp(0.85rem, 1vw, 0.95rem);
+      color: var(--text);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .stat-cell .stat-context {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      line-height: 1.4;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ============================================================
+       LAYOUT 5: Two Column Split
+       Left = numbered insight list, Right = pull-quote + supporting
+       stats. Both columns size to their content with natural rhythm
+       (gap-based spacing, no forced height-distribution).
+       ============================================================ */
+    .layout-split .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-split .split-body {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 3.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .split-left, .split-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .split-right {
+      padding-left: 2.5rem;
+      border-left: 2px solid var(--border);
+    }
+
+    .insight-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin: 0;
+      counter-reset: insight;
+    }
+
+    .insight-list li {
+      position: relative;
+      padding-left: 2.6rem;
+      font-size: clamp(0.88rem, 1.05vw, 1rem);
+      color: var(--text);
+      line-height: 1.55;
+      counter-increment: insight;
+    }
+
+    .insight-list li::before {
+      content: counter(insight, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.05em;
+      line-height: 1.7;
+    }
+
+    .split-highlight {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      padding: 1.3rem 1.5rem;
+      background: var(--accent-light);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .split-highlight cite {
+      display: block;
+      margin-top: 0.7rem;
+      font-style: normal;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .mini-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding-top: 0.4rem;
+    }
+
+    .mini-stat {
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .mini-stat .mini-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .mini-stat .mini-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      line-height: 1.35;
+    }
+
+    /* ============================================================
+       LAYOUT 6: Horizontal Bar Ranking
+       ============================================================ */
+    .layout-bars .bars-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    .bar-item {
+      display: grid;
+      grid-template-columns: minmax(180px, 30%) 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 0;
+    }
+
+    .bar-label {
+      font-size: clamp(0.8rem, 1.1vw, 1rem);
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .bar-track {
+      height: 28px;
+      background: var(--accent-light);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 6px;
+      transition: width 0.8s ease;
+    }
+
+    .bar-pct {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 45px;
+      text-align: right;
+    }
+
+    .bar-note {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.2rem;
+    }
+
+    /* ============================================================
+       LAYOUT 7: Quote / Highlight
+       ============================================================ */
+    .layout-quote {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .layout-quote .quote-mark {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 8rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0.15;
+      line-height: 0.5;
+      margin-bottom: 1rem;
+    }
+
+    .layout-quote blockquote {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text);
+      max-width: 65vw;
+      margin-bottom: 2rem;
+    }
+
+    .layout-quote .quote-source {
+      font-size: clamp(0.85rem, 1.1vw, 1rem);
+      color: var(--text-muted);
+    }
+
+    .layout-quote .quote-source strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .layout-quote .quote-decoration {
+      position: absolute;
+      top: 10vh;
+      left: 5vw;
+      width: 80px;
+      height: 80px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+    }
+
+    .layout-quote .quote-decoration-2 {
+      position: absolute;
+      bottom: 12vh;
+      right: 6vw;
+      width: 60px;
+      height: 60px;
+      background: var(--accent-light);
+      border-radius: 50%;
+    }
+
+    /* ============================================================
+       LAYOUT 8: Timeline / Process Flow
+       ============================================================ */
+    .layout-timeline .timeline-track {
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .timeline-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      right: -0.75rem;
+      width: 1.5rem;
+      height: 2px;
+      background: var(--border);
+    }
+
+    .step-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .timeline-step:nth-child(2) .step-circle { opacity: 0.85; }
+    .timeline-step:nth-child(3) .step-circle { opacity: 0.7; }
+    .timeline-step:nth-child(4) .step-circle { opacity: 0.55; }
+
+    .step-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .step-desc {
+      font-size: clamp(0.75rem, 1vw, 0.9rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 220px;
+    }
+
+    /* ============================================================
+       LAYOUT 9: Detailed Analysis (bullets with sub-items)
+       ============================================================ */
+    .layout-detail .detail-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem 3rem;
+      flex: 1;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+
+    .detail-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .detail-block {
+      padding: 1rem 1.2rem;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .detail-block h3 {
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      margin-bottom: 0.6rem;
+      color: var(--text);
+    }
+
+    .detail-block ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .detail-block ul li {
+      position: relative;
+      padding-left: 1.1rem;
+      padding-bottom: 0.4rem;
+      font-size: clamp(0.78rem, 1vw, 0.9rem);
+      line-height: 1.5;
+    }
+
+    .detail-block ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .detail-block ul li:last-child {
+      padding-bottom: 0;
+    }
+
+    /* ============================================================
+       LAYOUT 10: Closing / CTA
+       ============================================================ */
+    .layout-closing {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .layout-closing h1 {
+      margin-bottom: 1rem;
+    }
+
+    .layout-closing .closing-sub {
+      font-size: clamp(1rem, 1.5vw, 1.3rem);
+      color: var(--text-muted);
+      max-width: 45vw;
+      margin-bottom: 2.5rem;
+    }
+
+    .layout-closing .cta-btn {
+      display: inline-block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--primary);
+      padding: 0.9rem 2.2rem;
+      border-radius: 100px;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .layout-closing .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(30, 43, 250, 0.25);
+    }
+
+    .layout-closing .closing-contact {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .layout-closing .closing-decoration {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .layout-closing .closing-decoration-2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 360px;
+      height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed;
+      bottom: 2.5vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-light);
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* Responsive adjustments for very small heights */
+    @media (max-height: 700px) {
+      .slide { padding: 2.5vh 3vw; }
+      .layout-agenda .agenda-grid { gap: 0.8rem 2rem; }
+      .agenda-item { padding: 0.8rem; }
+      .metric-card { padding: 1rem; }
+      .layout-bars .bars-container { gap: 0.5rem; }
+      .bar-item { padding: 0.4rem 0; }
+      .detail-block { padding: 0.8rem 1rem; }
+    }
+
+    /* ============================================================
+       CUSTOM EXTENSIONS — TIME'EATS DECK
+       Built from Blue Professional's own vocabulary (cobalt-tinted
+       cards, 1px/1.5px cobalt-at-20% borders, 10-14px radius, no
+       shadows) to cover layouts the demo deck did not include:
+       dense data tables, a divider/chapter slide, a 6-step cycle.
+       ============================================================ */
+
+    /* ── Divider / chapter slide (reuses cover's centered-left frame) ── */
+    .layout-divider .divider-kicker {
+      margin-bottom: 0;
+    }
+
+    /* ── Dense data tables, rounded like the system's cards ── */
+    .data-table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th {
+      background: var(--card-bg);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--primary);
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.4;
+    }
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .data-table tr.tr-accent td {
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+    .data-table tr.tr-accent td:first-child {
+      border-left: 3px solid var(--primary);
+      padding-left: calc(0.9rem - 3px);
+    }
+    .data-table tr.tr-total td {
+      border-top: 1.5px solid var(--primary);
+      font-weight: 600;
+    }
+    .data-table td.num, .data-table th.num {
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .data-table.dense th {
+      font-size: 0.62rem;
+      padding: 0.4rem 0.7rem;
+    }
+    .data-table.dense td {
+      font-size: 0.72rem;
+      padding: 0.36rem 0.7rem;
+    }
+    .table-caption {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.6rem;
+    }
+
+    /* ── Two tables / two blocks side by side ── */
+    .dual-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      min-height: 0;
+    }
+
+    /* ── Compact axis/insight list variant ── */
+    .insight-list.compact li {
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    /* ── Mini cycle row — extends timeline-step to a 6-phase sequence ── */
+    .cycle-row-6 {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .cycle-row-6 .timeline-step:nth-child(5) .step-circle { opacity: 0.85; }
+    .cycle-row-6 .timeline-step:nth-child(6) .step-circle { opacity: 0.7; }
+    .cycle-mini-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 0 auto 0.7rem;
+      flex-shrink: 0;
+    }
+    .cycle-mini-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+    .cycle-mini-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 17px;
+      right: -0.6rem;
+      width: 1.2rem;
+      height: 1.5px;
+      background: var(--border);
+    }
+    .cycle-mini-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    /* ── Method blocks row (PMI / PRINCE2 / Agile) ── */
+    .method-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+
+    /* ── Loop-back note beneath a 4-step timeline ── */
+    .loop-back-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6em;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border);
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+    .loop-back-note .icon {
+      font-size: 1.4rem;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .loop-back-note strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ── Compact 4-cell horizontal log (J1-J4 style day breakdown) ── */
+    .mini-log-row4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .mini-log-cell {
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+    .mini-log-dt {
+      display: block;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.4rem;
+    }
+    .mini-log-dd {
+      font-size: 0.75rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    /* ── Small warning note (personalization reminders) ── */
+    .warn-note {
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--primary);
+      line-height: 1.5;
+    }
+
+    /* ── Simple stat tile (number + label only, no supports/context) ── */
+    .simple-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding: 1.2rem 1.3rem;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+    }
+    .simple-stat .simple-stat-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .simple-stat .simple-stat-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck">
+
+    <!-- SLIDE 1: Cover -->
+    <div class="slide layout-cover active">
+      <div class="cover-decoration"></div>
+      <div class="cover-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <h4 style="margin-bottom: 1.2rem;">Direction Générale · Comité de pilotage (COPIL) SI</h4>
+      <div class="accent-line"></div>
+      <h1>Superviser le portefeuille<br>projets de la DSI</h1>
+      <p class="subtitle">Zoom projet : mise en place de l'authentification forte des utilisateurs internes — CESI École d'Ingénieurs, Projet Expérientiel Collaboratif.</p>
+      <p class="meta">Cellule PMO — DSI Time'Eats · [Prénom NOM] · [Prénom NOM] · [Prénom NOM] &nbsp;&middot;&nbsp; PMO-TE-COLLAB-2026 · V1.0</p>
+    </div>
+
+    <!-- SLIDE 2: Sommaire -->
+    <div class="slide layout-agenda">
+      <div class="slide-header">
+        <h4>Sommaire</h4>
+        <span class="tag">Vue d'ensemble</span>
+      </div>
+      <div class="slide-content">
+        <h2>Ce que ce support présente</h2>
+        <div class="accent-line"></div>
+        <div class="agenda-grid">
+          <div class="agenda-item">
+            <span class="agenda-num">01</span>
             <div>
-              <span class="table-caption">Tableau 1 — Socle de cadrage</span>
+              <h3>Contexte et mission de la cellule PMO</h3>
+              <p>Time'Eats, son ambition, et pourquoi une cellule PMO a été créée.</p>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-num">02</span>
+            <div>
+              <h3>Définir, prioriser et faire vivre le portefeuille</h3>
+              <p>Processus commun, référentiel documentaire, grille de priorisation.</p>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-num">03</span>
+            <div>
+              <h3>Superviser et conduire le projet sélectionné</h3>
+              <p>Authentification forte des utilisateurs internes, de bout en bout.</p>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-num">04</span>
+            <div>
+              <h3>Clore le projet et capitaliser l'expérience</h3>
+              <p>Documents de clôture, PV de recette, processus de REX.</p>
+            </div>
+          </div>
+          <div class="agenda-item">
+            <span class="agenda-num">05</span>
+            <div>
+              <h3>Organisation du groupe et bilan</h3>
+              <p>Répartition du travail sur les 4 jours, points forts et axes d'amélioration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Contexte -->
+    <div class="slide layout-dashboard">
+      <div class="slide-header">
+        <h4>01 · Contexte</h4>
+        <span class="tag">Time'Eats</span>
+      </div>
+      <div class="slide-content">
+        <h2>Time'Eats et la mission confiée à la cellule PMO</h2>
+        <p style="max-width: 88%; margin-bottom: 1.2rem;">
+          Time'Eats vend de la nourriture préparée et lance la livraison à domicile, avec un réseau de traiteurs et de chefs partenaires. Ambition de la Direction : un million de nouveaux clients et dix mille restaurants ou traiteurs partenaires en deux ans, pour devenir un acteur reconnu en France à cinq ans — sans concurrencer directement les grandes plateformes internationales.
+        </p>
+        <p style="max-width: 88%; margin-bottom: 1.5rem;">
+          Pour tenir ce rythme, la DSI doit livrer beaucoup en peu de temps — application web, applications mobiles, CRM, sécurité renforcée. Onze projets sont lancés ou à lancer sur l'année, pilotés par une cellule PMO de cinq chefs de projet tout juste créée. La Direction nous a demandé de structurer le pilotage du portefeuille avant qu'un projet n'échoue faute d'organisation.
+        </p>
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="simple-stat">
+            <div class="simple-stat-val">200</div>
+            <div class="simple-stat-label">salariés dans l'entreprise</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">21</div>
+            <div class="simple-stat-label">collaborateurs à la DSI</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">11</div>
+            <div class="simple-stat-label">projets dans le portefeuille DSI</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">25 %</div>
+            <div class="simple-stat-label">de part de marché visée à 5 ans</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Divider — Partie 1 -->
+    <div class="slide layout-cover layout-divider">
+      <div class="cover-decoration"></div>
+      <h4 class="divider-kicker">Partie 1 · 01</h4>
+      <div class="accent-line"></div>
+      <h1>Définir, prioriser et faire vivre le portefeuille de projets</h1>
+      <p class="subtitle">Harmoniser le processus de management, bâtir un référentiel documentaire commun, et prioriser objectivement les 11 projets du portefeuille DSI.</p>
+    </div>
+
+    <!-- SLIDE 5: 1.1 Cycle + méthodes -->
+    <div class="slide layout-timeline">
+      <div class="slide-header">
+        <h4>Partie 1 · 1.1</h4>
+        <span class="tag">Processus</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Harmoniser le processus de management des projets</h2>
+        <p style="max-width: 90%; margin-bottom: 1rem;">Avant la cellule PMO, chaque chef de projet gérait son projet à sa manière. Nous retenons une trame commune, construite à partir de trois référentiels reconnus, adaptée à la taille des projets de Time'Eats plutôt qu'appliquée à la lettre.</p>
+        <span class="table-caption">Figure 1 — Cycle de vie commun en 6 phases</span>
+        <div class="cycle-row-6" style="margin-bottom: 1.5rem;">
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">1</div>
+            <div class="cycle-mini-title">Cadrage &amp; lancement</div>
+          </div>
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">2</div>
+            <div class="cycle-mini-title">Conception / paramétrage</div>
+          </div>
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">3</div>
+            <div class="cycle-mini-title">Réalisation</div>
+          </div>
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">4</div>
+            <div class="cycle-mini-title">Recette</div>
+          </div>
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">5</div>
+            <div class="cycle-mini-title">Déploiement</div>
+          </div>
+          <div class="cycle-mini-step">
+            <div class="cycle-mini-circle">6</div>
+            <div class="cycle-mini-title">Clôture &amp; stabilisation</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="detail-block">
+            <h3>PMI (PMBOK)</h3>
+            <p style="font-size: 0.8rem; margin: 0;">Sert d'ossature : découpage en phases et rubriques du plan de management (charte, budget, planning, risques).</p>
+          </div>
+          <div class="detail-block">
+            <h3>PRINCE2</h3>
+            <p style="font-size: 0.8rem; margin: 0;">Inspire la gouvernance : un comité valide chaque jalon avant de passer à la phase suivante (logique de « Go / No-Go »).</p>
+          </div>
+          <div class="detail-block">
+            <h3>Agile (Scrum)</h3>
+            <p style="font-size: 0.8rem; margin: 0;">S'applique pendant la réalisation des projets applicatifs (CRM, applis mobiles, refonte web), par sprints courts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: 1.2 Référentiel documentaire -->
+    <div class="slide layout-split">
+      <div class="slide-header">
+        <h4>Partie 1 · 1.2</h4>
+        <span class="tag">Référentiel</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.6rem, 2.6vw, 2.2rem);">Le référentiel documentaire commun</h2>
+        <p style="margin-bottom: 1.2rem;">Dix documents types couvrent l'ensemble du cycle de vie d'un projet IT, du cadrage à la capitalisation.</p>
+        <div class="dual-col">
+          <div>
+            <span class="table-caption">Tableau 1 — Socle de cadrage</span>
+            <div class="data-table-wrap">
               <table class="data-table dense">
                 <thead><tr><th>Document</th><th>Objectif</th><th>Moment</th></tr></thead>
                 <tbody>
@@ -1916,8 +1342,10 @@
                 </tbody>
               </table>
             </div>
-            <div>
-              <span class="table-caption">Tableau 2 — Pilotage et clôture</span>
+          </div>
+          <div>
+            <span class="table-caption">Tableau 2 — Pilotage et clôture</span>
+            <div class="data-table-wrap">
               <table class="data-table dense">
                 <thead><tr><th>Document</th><th>Objectif</th><th>Moment</th></tr></thead>
                 <tbody>
@@ -1930,94 +1358,102 @@
               </table>
             </div>
           </div>
-          <p class="caption muted">Les cinq premiers documents forment le socle minimal pour lancer tout projet DSI ; les cinq suivants accompagnent le pilotage et la clôture.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">06 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 1rem; font-size: 0.8rem;">Les cinq premiers documents forment le socle minimal pour lancer tout projet DSI ; les cinq suivants accompagnent le pilotage et la clôture.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 7 · 1.2 RUBRIQUES CLÉS light (dense 3-col) ══════════ -->
-      <section class="slide light slide--dense">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 1 · 1.2</span>
-          <span class="label muted">07 / 25</span>
-        </div>
-        <h2 class="dense-hl">Rubriques clés de trois documents pivots</h2>
-        <div style="display:flex; flex-direction:column; justify-content:center; min-height:0;">
-          <p class="body muted" style="max-width: 82%;">Le formalisme complet de chaque document est laissé au chef de projet ; trois documents structurent tout le reste et méritent d'être détaillés.</p>
-          <div class="dense-cols-3">
-            <div class="dense-col compact">
-              <h4>1 · Charte de projet (1 page)</h4>
-              <p>Objectif et périmètre — Sponsor et chef de projet — Budget et planning cadres — Critères de succès.</p>
-            </div>
-            <div class="dense-col compact">
-              <h4>2 · Cahier des charges (7 rubriques)</h4>
-              <p>Contexte et objectifs — Exigences fonctionnelles — Exigences non fonctionnelles — Contraintes et interfaces — Livrables attendus — Critères d'acceptation — Annexes.</p>
-            </div>
-            <div class="dense-col compact">
-              <h4>3 · Registre des risques</h4>
-              <p>Identifiant et catégorie — Probabilité × impact = criticité — Stratégie de traitement — Plan d'action et responsable.</p>
-            </div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Ce référentiel facilite l'arrivée d'un nouveau chef de projet dans la cellule PMO</span>
-          <span class="label muted">07 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 8 · 1.3 CRITÈRES DE PRIORISATION dark (custom) ══════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 1 · 1.3</span>
-          <span class="label muted">08 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: var(--gap-sm); min-height:0;">
-          <div>
-            <h2 class="h2" style="font-size: 2.2vw;">Le tableau de bord de supervision du portefeuille</h2>
-            <p class="body muted" style="margin-top: 0.5vh; max-width: 90%;">La priorisation suit la stratégie de l'entreprise plutôt que des impressions personnelles. Cinq axes en découlent :</p>
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap: calc(var(--pad-x) * 0.6); align-items: start; flex: 1; min-height: 0;">
-            <ul class="bullet-list compact">
-              <li>Axe 1 — Conquérir de nouveaux clients</li>
-              <li>Axe 2 — Construire un socle technique fiable</li>
-              <li>Axe 3 — Limiter les risques, garder l'activité en marche</li>
-              <li>Axe 4 — Respecter la réglementation</li>
-              <li>Axe 5 — Maîtriser les coûts, donner de la visibilité à la Direction</li>
+    <!-- SLIDE 7: 1.2 Rubriques clés -->
+    <div class="slide layout-detail">
+      <div class="slide-header">
+        <h4>Partie 1 · 1.2</h4>
+        <span class="tag">Documents pivots</span>
+      </div>
+      <div class="slide-content">
+        <h2>Rubriques clés de trois documents pivots</h2>
+        <p style="margin-bottom: 1.2rem; max-width: 90%;">Le formalisme complet de chaque document est laissé au chef de projet ; trois documents structurent tout le reste et méritent d'être détaillés.</p>
+        <div class="method-row">
+          <div class="detail-block">
+            <h3>1 · Charte de projet (1 page)</h3>
+            <ul>
+              <li>Objectif et périmètre</li>
+              <li>Sponsor et chef de projet</li>
+              <li>Budget et planning cadres</li>
+              <li>Critères de succès</li>
             </ul>
-            <div>
-              <span class="table-caption">Tableau 3 — Critères de priorisation et cotation</span>
+          </div>
+          <div class="detail-block">
+            <h3>2 · Cahier des charges (7 rubriques)</h3>
+            <ul>
+              <li>Contexte et objectifs</li>
+              <li>Exigences fonctionnelles / non fonctionnelles</li>
+              <li>Contraintes et interfaces</li>
+              <li>Livrables attendus</li>
+              <li>Critères d'acceptation — Annexes</li>
+            </ul>
+          </div>
+          <div class="detail-block">
+            <h3>3 · Registre des risques</h3>
+            <ul>
+              <li>Identifiant et catégorie</li>
+              <li>Probabilité × impact = criticité</li>
+              <li>Stratégie de traitement</li>
+              <li>Plan d'action et responsable</li>
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top: 1.2rem; font-size: 0.8rem;">Ce référentiel commun facilite aussi l'arrivée d'un nouveau chef de projet dans la cellule PMO.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: 1.3 Critères de priorisation -->
+    <div class="slide layout-split">
+      <div class="slide-header">
+        <h4>Partie 1 · 1.3</h4>
+        <span class="tag">Priorisation</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Le tableau de bord de supervision du portefeuille</h2>
+        <p style="margin-bottom: 1rem; max-width: 92%;">La priorisation suit la stratégie de l'entreprise plutôt que des impressions personnelles. Cinq axes en découlent :</p>
+        <div class="split-body" style="grid-template-columns: 0.85fr 1.15fr;">
+          <ul class="insight-list compact">
+            <li>Conquérir de nouveaux clients</li>
+            <li>Construire un socle technique fiable</li>
+            <li>Limiter les risques, garder l'activité en marche</li>
+            <li>Respecter la réglementation</li>
+            <li>Maîtriser les coûts, donner de la visibilité à la Direction</li>
+          </ul>
+          <div style="display:flex; flex-direction:column; gap: 0.8rem;">
+            <span class="table-caption">Tableau 3 — Critères de priorisation et cotation</span>
+            <div class="data-table-wrap">
               <table class="data-table dense">
-                <thead><tr><th>Critère</th><th>Ce qu'il mesure</th><th>Échelle de cotation</th></tr></thead>
+                <thead><tr><th>Critère</th><th>Ce qu'il mesure</th><th>Échelle</th></tr></thead>
                 <tbody>
-                  <tr><td>Nécessité stratégique</td><td>Importance du projet pour la stratégie Time'Eats</td><td>1 (marginal) à 5 (indispensable) — un projet réglementaire est toujours coté 5</td></tr>
-                  <tr><td>Rentabilité attendue</td><td>Retour attendu : nouveaux clients, CA, économies</td><td>1 (faible) à 5 (fort)</td></tr>
-                  <tr><td>Maîtrise des risques</td><td>Confiance de l'équipe dans sa capacité à tenir le projet</td><td>1 (mal maîtrisés) à 5 (bien maîtrisés)</td></tr>
+                  <tr><td>Nécessité stratégique</td><td>Importance pour la stratégie Time'Eats</td><td>1 à 5 — un projet réglementaire est toujours coté 5</td></tr>
+                  <tr><td>Rentabilité attendue</td><td>Nouveaux clients, CA, économies</td><td>1 (faible) à 5 (fort)</td></tr>
+                  <tr><td>Maîtrise des risques</td><td>Confiance de l'équipe dans le projet</td><td>1 (mal maîtrisés) à 5 (bien maîtrisés)</td></tr>
                 </tbody>
               </table>
             </div>
-          </div>
-          <div class="callout">
-            <strong>Score = Nécessité + Rentabilité + Maîtrise des risques</strong> (sur 15). Priorité 1 — Engagé (score ≥ 12) · Priorité 2 — Important (9 à 11) · Priorité 3 — À surveiller (≤ 8). Exception assumée : un projet réglementaire reste engagé quel que soit son score.
+            <div class="split-highlight" style="font-size: 0.85rem; padding: 1rem 1.2rem;">
+              Score = Nécessité + Rentabilité + Maîtrise des risques (sur 15). P1 — Engagé (≥ 12) · P2 — Important (9-11) · P3 — À surveiller (≤ 8).
+              <cite>Exception : un projet réglementaire reste engagé quel que soit son score</cite>
+            </div>
           </div>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">08 / 25</span>
-        </div>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 9 · 1.3 APPLICATION AUX 11 PROJETS light (custom) ═══ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 1 · 1.3</span>
-          <span class="label muted">09 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.8vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2vw;">Application de la grille aux 11 projets du portefeuille</h2>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 4 — Classement des 11 projets du portefeuille</span>
+    <!-- SLIDE 9: 1.3 Application aux 11 projets -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 1 · 1.3</h4>
+        <span class="tag">Portefeuille</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.4rem, 2.2vw, 2rem);">Application de la grille aux 11 projets du portefeuille</h2>
+        <span class="table-caption">Tableau 4 — Classement des 11 projets du portefeuille</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead>
               <tr><th>Rang</th><th>Projet</th><th class="num">Néc.</th><th class="num">Rent.</th><th class="num">M.R.</th><th class="num">Score /15</th><th>Priorité</th></tr>
@@ -2036,118 +1472,109 @@
               <tr><td class="num">11</td><td>Migration MS Azure des applications métiers</td><td class="num">3</td><td class="num">4</td><td class="num">1</td><td class="num">8</td><td>P3</td></tr>
             </tbody>
           </table>
-          <p class="caption muted" style="margin-top: 0.6vh;">
-            * Projet réglementaire : engagé quel que soit son score. L'authentification forte (juillet) et la sauvegarde Cloud (octobre) ne se chevauchent pas dans le temps. Elle se classe en tout cas en Priorité 1 (rang 3 sur 11), ce qui confirme la pertinence du projet imposé pour cet exercice.
-          </p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">09 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 10 · CHAPTER dark — PARTIE 2 ════════════════════════ -->
-      <section class="slide dark slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">Partie 2 · 02</div>
-        <div class="chapter-rule" data-anim="reveal-right" data-delay="1"></div>
-        <h1 class="h1" style="max-width: 72%; margin-bottom: var(--gap-md);" data-anim="fade-up" data-delay="2">
-          Superviser et conduire le projet <em>sélectionné</em>
-        </h1>
-        <p class="lead muted" style="max-width: 56%;" data-anim="fade-up" data-delay="3">
-          Authentification forte des utilisateurs internes — de la charte de projet au tableau de bord de suivi.
+        <p style="margin-top: 0.8rem; font-size: 0.78rem;">
+          * Projet réglementaire : engagé quel que soit son score. L'authentification forte (juillet) et la sauvegarde Cloud (octobre) ne se chevauchent pas dans le temps. Elle se classe en Priorité 1 (rang 3 sur 11), ce qui confirme la pertinence du projet imposé pour cet exercice.
         </p>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 11 · FICHE D'IDENTITÉ dark (custom: stats) ══════════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · Présentation</span>
-          <span class="label muted">11 / 25</span>
+    <!-- SLIDE 10: Divider — Partie 2 -->
+    <div class="slide layout-cover layout-divider">
+      <div class="cover-decoration"></div>
+      <h4 class="divider-kicker">Partie 2 · 02</h4>
+      <div class="accent-line"></div>
+      <h1>Superviser et conduire le projet sélectionné</h1>
+      <p class="subtitle">Authentification forte des utilisateurs internes — de la charte de projet au tableau de bord de suivi.</p>
+    </div>
+
+    <!-- SLIDE 11: Fiche d'identité -->
+    <div class="slide layout-dashboard">
+      <div class="slide-header">
+        <h4>Partie 2 · Présentation</h4>
+        <span class="tag">Fiche projet</span>
+      </div>
+      <div class="slide-content">
+        <h2>Authentification forte des utilisateurs internes</h2>
+        <p style="max-width: 90%; margin-bottom: 1.2rem;">
+          Intégrer une solution d'authentification multi-facteurs (MFA) pour renforcer la sécurité des accès aux applications internes et tierces de Time'Eats, et protéger les données sensibles. Le projet concerne l'ensemble des collaborateurs, tous sites confondus.
+        </p>
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1.2rem;">
+          <div class="simple-stat">
+            <div class="simple-stat-val">150 k€</div>
+            <div class="simple-stat-label">Budget prévisionnel</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">4 mois</div>
+            <div class="simple-stat-label">Juillet → Octobre N</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">120 j/h</div>
+            <div class="simple-stat-label">Charge de travail estimée</div>
+          </div>
+          <div class="simple-stat">
+            <div class="simple-stat-val">12/15 — P1</div>
+            <div class="simple-stat-label">Score et priorité (rang 3/11)</div>
+          </div>
         </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; justify-content:center; gap: var(--gap-md);">
-          <div style="display:flex; flex-direction:column; gap: 1vh;">
-            <h2 class="h2">Authentification forte des utilisateurs internes</h2>
-            <p class="lead muted" style="max-width: 86%;">
-              Intégrer une solution d'authentification multi-facteurs (MFA) pour renforcer la sécurité des accès aux applications internes et tierces de Time'Eats, et protéger les données sensibles. Le projet concerne l'ensemble des collaborateurs, tous sites confondus.
-            </p>
+        <h4 style="margin-bottom: 0.5rem;">Pourquoi ce projet a été retenu</h4>
+        <p style="max-width: 90%;">
+          Le sujet impose ce projet à tous les groupes pour cet exercice — mais il se classe aussi en Priorité 1 du portefeuille (Partie 1.3), avec un profil proche du CRM. Sécuriser les accès est une base à poser avant la montée en puissance du CRM et des applications mobiles.
+        </p>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: 2.1 Charte + CDC -->
+    <div class="slide layout-detail">
+      <div class="slide-header">
+        <h4>Partie 2 · 2.1 Plan de management (1/3)</h4>
+        <span class="tag">Charte &amp; CDC</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Charte de projet et cahier des charges</h2>
+        <p style="font-style: italic; font-size: 0.82rem; margin-bottom: 1.2rem; max-width: 92%;">
+          Les consignes excluent un plan de management complet pour ce projet : nous détaillons l'intérêt de chaque rubrique, sans détailler chaque champ.
+        </p>
+        <div class="detail-body" style="grid-template-columns: 1fr 1fr;">
+          <div class="detail-col">
+            <div class="detail-block">
+              <h3>Charte de projet</h3>
+              <ul>
+                <li><strong>Objectif —</strong> Sécuriser l'accès aux applications internes et tierces par une authentification à plusieurs facteurs</li>
+                <li><strong>Périmètre —</strong> Tous les collaborateurs Time'Eats, tous sites (Rennes, Morlaix, Concarneau, bureaux régionaux)</li>
+                <li><strong>Cadre budget / délai —</strong> 150 k€ — 4 mois (juillet à octobre N)</li>
+                <li><strong>Sponsor —</strong> Directeur des Systèmes d'Information (RSSI)</li>
+                <li><strong>Critère de succès —</strong> MFA actif sur 100 % des comptes à risque fin octobre, sans interruption de service majeure</li>
+              </ul>
+            </div>
           </div>
-          <div class="stats-grid cols-4">
-            <div class="stat-card">
-              <div class="stat-value">150 k€</div>
-              <div class="stat-label">Budget prévisionnel</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">4 mois</div>
-              <div class="stat-label">Juillet → Octobre N</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">120 j/h</div>
-              <div class="stat-label">Charge de travail estimée</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">12/15 — P1</div>
-              <div class="stat-label">Score et priorité (rang 3 sur 11)</div>
+          <div class="detail-col">
+            <div class="detail-block">
+              <h3>Cahier des charges</h3>
+              <ul>
+                <li><strong>Exigences fonctionnelles —</strong> Au moins 2 méthodes MFA au choix, auto-inscription guidée, SSO avec l'AD existant</li>
+                <li><strong>Exigences non fonctionnelles —</strong> Disponibilité ≥ 99,5 %, compatibilité avec les applications tierces, accessible à tous les profils</li>
+                <li><strong>Livrables attendus —</strong> Solution MFA déployée, guide utilisateur, procédure de support</li>
+                <li><strong>Critères d'acceptation —</strong> Base du plan de test — voir Partie 3 (clôture)</li>
+              </ul>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13: 2.1 Budget + Planning -->
+    <div class="slide layout-split">
+      <div class="slide-header">
+        <h4>Partie 2 · 2.1 Plan de management (2/3)</h4>
+        <span class="tag">Budget &amp; planning</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Budget prévisionnel et planning</h2>
+        <div class="dual-col">
           <div>
-            <span class="kicker">Pourquoi ce projet a été retenu</span>
-            <p class="body muted" style="margin-top: 0.6vh; max-width: 88%;">
-              Le sujet impose ce projet à tous les groupes pour cet exercice — mais il se classe aussi en Priorité 1 du portefeuille (Partie 1.3), avec un profil proche du CRM. Sécuriser les accès est une base à poser avant la montée en puissance du CRM et des applications mobiles.
-            </p>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">11 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 12 · 2.1 CHARTE + CDC light (dense 2-col) ═══════════ -->
-      <section class="slide light slide--dense">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · 2.1 Plan de management (1/3)</span>
-          <span class="label muted">12 / 25</span>
-        </div>
-        <h2 class="dense-hl" style="font-size: 2vw;">Charte de projet et cahier des charges</h2>
-        <div style="display:flex; flex-direction:column; justify-content:center; gap: 0.8vh; min-height:0;">
-          <p class="caption muted" style="font-style: italic; max-width: 90%;">
-            Les consignes excluent un plan de management complet pour ce projet : nous détaillons l'intérêt de chaque rubrique, sans détailler chaque champ.
-          </p>
-          <div class="dense-cols">
-            <div class="dense-col compact">
-              <h4>Charte de projet</h4>
-              <p><strong style="color:var(--c-fg);">Objectif —</strong> Sécuriser l'accès aux applications internes et tierces par une authentification à plusieurs facteurs.</p>
-              <p><strong style="color:var(--c-fg);">Périmètre —</strong> Tous les collaborateurs Time'Eats, tous sites (Rennes, Morlaix, Concarneau, bureaux régionaux).</p>
-              <p><strong style="color:var(--c-fg);">Cadre budget / délai —</strong> 150 k€ — 4 mois (juillet à octobre N).</p>
-              <p><strong style="color:var(--c-fg);">Sponsor —</strong> Directeur des Systèmes d'Information (RSSI).</p>
-              <p><strong style="color:var(--c-fg);">Critère de succès —</strong> MFA actif sur 100 % des comptes à risque fin octobre, sans interruption de service majeure.</p>
-            </div>
-            <div class="dense-col compact">
-              <h4>Cahier des charges</h4>
-              <p><strong style="color:var(--c-fg);">Exigences fonctionnelles —</strong> Au moins 2 méthodes MFA au choix (application d'authentification, notification push), auto-inscription guidée, SSO avec l'AD existant.</p>
-              <p><strong style="color:var(--c-fg);">Exigences non fonctionnelles —</strong> Disponibilité du service ≥ 99,5 %, compatibilité avec les applications tierces, accessible à tous les profils (terrain, siège, production).</p>
-              <p><strong style="color:var(--c-fg);">Livrables attendus —</strong> Solution MFA déployée, guide utilisateur, procédure de support.</p>
-              <p><strong style="color:var(--c-fg);">Critères d'acceptation —</strong> Base du plan de test — voir Partie 3 (clôture).</p>
-            </div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">12 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 13 · 2.1 BUDGET + PLANNING light (dual tables) ══════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · 2.1 Plan de management (2/3)</span>
-          <span class="label muted">13 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: var(--gap-sm); min-height:0;">
-          <h2 class="h2" style="font-size: 2.2vw;">Budget prévisionnel et planning</h2>
-          <div class="dual-col" style="margin-top: 0.4vh;">
-            <div>
-              <span class="table-caption">Tableau 5 — Budget prévisionnel (150 k€)</span>
+            <span class="table-caption">Tableau 5 — Budget prévisionnel (150 k€)</span>
+            <div class="data-table-wrap">
               <table class="data-table dense">
                 <thead><tr><th>Poste de dépense</th><th>Montant</th><th>Commentaire</th></tr></thead>
                 <tbody>
@@ -2160,8 +1587,10 @@
                 </tbody>
               </table>
             </div>
-            <div>
-              <span class="table-caption">Tableau 6 — Planning prévisionnel (juillet–octobre N)</span>
+          </div>
+          <div>
+            <span class="table-caption">Tableau 6 — Planning prévisionnel (juillet–octobre N)</span>
+            <div class="data-table-wrap">
               <table class="data-table dense">
                 <thead><tr><th>Phase</th><th>Période</th><th>Jalon</th></tr></thead>
                 <tbody>
@@ -2175,24 +1604,22 @@
               </table>
             </div>
           </div>
-          <p class="caption muted">Intégration technique confiée à un prestataire ; formation portée en interne, là où l'équipe connaît mieux le contexte de Time'Eats.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">13 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 1rem; font-size: 0.8rem;">Intégration technique confiée à un prestataire ; formation portée en interne, là où l'équipe connaît mieux le contexte de Time'Eats.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 14 · 2.1 REGISTRE DES RISQUES light ═════════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · 2.1 Plan de management (3/3)</span>
-          <span class="label muted">14 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.8vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.2vw;">Registre des risques du projet</h2>
-          <p class="body muted">Probabilité × impact = criticité (échelle 1 à 5). Le registre est ouvert au lancement et mis à jour à chaque comité de pilotage.</p>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 7 — Registre des risques du projet Authentification forte</span>
+    <!-- SLIDE 14: 2.1 Registre des risques -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 2 · 2.1 Plan de management (3/3)</h4>
+        <span class="tag">Registre des risques</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Registre des risques du projet</h2>
+        <p style="margin-bottom: 0.8rem;">Probabilité × impact = criticité (échelle 1 à 5). Le registre est ouvert au lancement et mis à jour à chaque comité de pilotage.</p>
+        <span class="table-caption">Tableau 7 — Registre des risques du projet Authentification forte</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead><tr><th>ID</th><th>Risque</th><th>Catégorie</th><th class="num">P</th><th class="num">I</th><th class="num">Crit.</th><th>Plan d'action</th></tr></thead>
             <tbody>
@@ -2203,24 +1630,22 @@
               <tr><td>R-05</td><td>Interruption d'accès pendant la bascule d'un site</td><td>Technique</td><td class="num">2</td><td class="num">5</td><td class="num">10</td><td>Bascule progressive, fenêtre annoncée, support renforcé le jour J</td></tr>
             </tbody>
           </table>
-          <p class="caption muted">R-01 et R-02 sont les plus critiques (score 12) : ils touchent directement l'expérience des utilisateurs, cible principale du plan de communication.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">14 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 0.8rem; font-size: 0.78rem;">R-01 et R-02 sont les plus critiques (score 12) : ils touchent directement l'expérience des utilisateurs, cible principale du plan de communication.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 15 · PLAN DE COMMUNICATION light ════════════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · Plan de management</span>
-          <span class="label muted">15 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.9vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.2vw;">Plan de communication du projet</h2>
-          <p class="body muted">L'intensité de la communication augmente à l'approche de chaque bascule de site, pour limiter le risque R-01 (résistance au changement).</p>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 8 — Plan de communication du projet</span>
+    <!-- SLIDE 15: Plan de communication -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 2 · Plan de management</h4>
+        <span class="tag">Communication</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Plan de communication du projet</h2>
+        <p style="margin-bottom: 0.8rem;">L'intensité de la communication augmente à l'approche de chaque bascule de site, pour limiter le risque R-01 (résistance au changement).</p>
+        <span class="table-caption">Tableau 8 — Plan de communication du projet</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead><tr><th>Cible</th><th>Objectif</th><th>Message clé</th><th>Canal</th><th>Fréquence</th></tr></thead>
             <tbody>
@@ -2230,24 +1655,22 @@
               <tr><td>Site pilote (Rennes)</td><td>Tester et remonter les difficultés</td><td>Consignes de test, canal de remontée</td><td>Canal dédié</td><td>Quotidien pendant le pilote</td></tr>
             </tbody>
           </table>
-          <p class="caption muted">Le canal compte parfois plus que le message : les équipes de production réagissent mieux à un relais de proximité qu'à un simple email.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">15 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 0.8rem; font-size: 0.78rem;">Le canal compte parfois plus que le message : les équipes de production réagissent mieux à un relais de proximité qu'à un simple email.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 16 · 2.2 TABLEAU DE BORD DE SUIVI light ═════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 2 · 2.2</span>
-          <span class="label muted">16 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.9vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.1vw;">Tableau de bord de suivi — respect du triangle d'or</h2>
-          <p class="body muted">Cinq indicateurs, suivis chaque semaine par le chef de projet et présentés en comité de pilotage, couvrent les coûts, les délais et la qualité.</p>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 9 — Tableau de bord de suivi du projet</span>
+    <!-- SLIDE 16: 2.2 Tableau de bord de suivi -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 2 · 2.2</h4>
+        <span class="tag">Suivi</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.4rem, 2.3vw, 2rem);">Tableau de bord de suivi — respect du triangle d'or</h2>
+        <p style="margin-bottom: 0.8rem;">Cinq indicateurs, suivis chaque semaine par le chef de projet et présentés en comité de pilotage, couvrent les coûts, les délais et la qualité.</p>
+        <span class="table-caption">Tableau 9 — Tableau de bord de suivi du projet</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead><tr><th>Indicateur</th><th>Mode de calcul</th><th>Cible</th><th>Fréquence</th></tr></thead>
             <tbody>
@@ -2258,36 +1681,31 @@
               <tr><td>Complétion des formations (qualité)</td><td>Collaborateurs formés / à former</td><td>100 % avant bascule de chaque site</td><td>Hebdomadaire</td></tr>
             </tbody>
           </table>
-          <p class="caption muted">Les trois derniers indicateurs traduisent la qualité du déploiement du point de vue de l'utilisateur, plutôt qu'un simple respect du cahier des charges technique.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">16 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 0.8rem; font-size: 0.78rem;">Les trois derniers indicateurs traduisent la qualité du déploiement du point de vue de l'utilisateur, plutôt qu'un simple respect du cahier des charges technique.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 17 · CHAPTER dark — PARTIE 3 ════════════════════════ -->
-      <section class="slide dark slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">Partie 3 · 03</div>
-        <div class="chapter-rule" data-anim="reveal-right" data-delay="1"></div>
-        <h1 class="h1" style="max-width: 60%; margin-bottom: var(--gap-md);" data-anim="fade-up" data-delay="2">
-          Clore le <em>projet</em>
-        </h1>
-        <p class="lead muted" style="max-width: 56%;" data-anim="fade-up" data-delay="3">
-          Documents contractuels de clôture et template de procès-verbal de recette, réutilisables pour tout le portefeuille.
-        </p>
-      </section>
+    <!-- SLIDE 17: Divider — Partie 3 -->
+    <div class="slide layout-cover layout-divider">
+      <div class="cover-decoration"></div>
+      <h4 class="divider-kicker">Partie 3 · 03</h4>
+      <div class="accent-line"></div>
+      <h1>Clore le projet</h1>
+      <p class="subtitle">Documents contractuels de clôture et template de procès-verbal de recette, réutilisables pour tout le portefeuille.</p>
+    </div>
 
-      <!-- ═══════ SLIDE 18 · 3.1 DOCUMENTS CONTRACTUELS light ═══════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 3 · 3.1</span>
-          <span class="label muted">18 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.9vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.2vw;">Documents contractuels de clôture</h2>
-          <p class="body muted">Il ne s'agit pas de formaliser entièrement chaque document, mais de justifier pourquoi chacun est nécessaire pour clore proprement le projet, en interne comme avec le prestataire.</p>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 10 — Documents contractuels de clôture</span>
+    <!-- SLIDE 18: 3.1 Documents contractuels de clôture -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 3 · 3.1</h4>
+        <span class="tag">Clôture</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Documents contractuels de clôture</h2>
+        <p style="margin-bottom: 0.8rem;">Il ne s'agit pas de formaliser entièrement chaque document, mais de justifier pourquoi chacun est nécessaire pour clore proprement le projet, en interne comme avec le prestataire.</p>
+        <span class="table-caption">Tableau 10 — Documents contractuels de clôture</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead><tr><th>Document</th><th>Concerne</th><th>Pourquoi il est nécessaire</th></tr></thead>
             <tbody>
@@ -2300,22 +1718,20 @@
             </tbody>
           </table>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">18 / 25</span>
-        </div>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 19 · 3.2 TEMPLATE PV DE RECETTE light ═══════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 3 · 3.2</span>
-          <span class="label muted">19 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.9vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.2vw;">Template de procès-verbal de recette</h2>
-          <p class="body muted">Modèle unique, pensé pour être réutilisé par tous les projets du portefeuille DSI, qu'ils soient applicatifs ou d'infrastructure.</p>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 11 — Template de PV de recette</span>
+    <!-- SLIDE 19: 3.2 Template PV de recette -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 3 · 3.2</h4>
+        <span class="tag">Clôture</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.5rem, 2.4vw, 2.1rem);">Template de procès-verbal de recette</h2>
+        <p style="margin-bottom: 0.8rem;">Modèle unique, pensé pour être réutilisé par tous les projets du portefeuille DSI, qu'ils soient applicatifs ou d'infrastructure.</p>
+        <span class="table-caption">Tableau 11 — Template de PV de recette</span>
+        <div class="data-table-wrap">
           <table class="data-table dense">
             <thead><tr><th>Champ</th><th>Contenu attendu</th></tr></thead>
             <tbody>
@@ -2331,80 +1747,66 @@
             </tbody>
           </table>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">19 / 25</span>
-        </div>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 20 · CHAPTER dark — PARTIE 4 ════════════════════════ -->
-      <section class="slide dark slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">Partie 4 · 04</div>
-        <div class="chapter-rule" data-anim="reveal-right" data-delay="1"></div>
-        <h1 class="h1" style="max-width: 60%; margin-bottom: var(--gap-md);" data-anim="fade-up" data-delay="2">
-          Capitaliser l'<em>expérience</em>
-        </h1>
-        <p class="lead muted" style="max-width: 56%;" data-anim="fade-up" data-delay="3">
-          Quatre outils complémentaires, de la fiche individuelle à la revue de portefeuille trimestrielle.
-        </p>
-      </section>
+    <!-- SLIDE 20: Divider — Partie 4 -->
+    <div class="slide layout-cover layout-divider">
+      <div class="cover-decoration"></div>
+      <h4 class="divider-kicker">Partie 4 · 04</h4>
+      <div class="accent-line"></div>
+      <h1>Capitaliser l'expérience</h1>
+      <p class="subtitle">Quatre outils complémentaires, de la fiche individuelle à la revue de portefeuille trimestrielle.</p>
+    </div>
 
-      <!-- ═══════ SLIDE 21 · 4.1 PROCESSUS DE CAPITALISATION dark (loop) ════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 4 · 4.1</span>
-          <span class="label muted">21 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; justify-content:center; gap: var(--gap-md); min-height:0;">
-          <div>
-            <h2 class="h2" style="font-size: 2.3vw;">Le processus de capitalisation d'expérience</h2>
-            <p class="lead muted" style="margin-top: 0.6vh;">Ces quatre outils se complètent.</p>
+    <!-- SLIDE 21: 4.1 Processus de capitalisation -->
+    <div class="slide layout-timeline">
+      <div class="slide-header">
+        <h4>Partie 4 · 4.1</h4>
+        <span class="tag">REX</span>
+      </div>
+      <div class="slide-content">
+        <h2>Le processus de capitalisation d'expérience</h2>
+        <p style="margin-bottom: 0.5rem;">Ces quatre outils se complètent.</p>
+        <div class="timeline-track">
+          <div class="timeline-step">
+            <div class="step-circle">1</div>
+            <div class="step-title">Fiche de capitalisation (REX)</div>
+            <div class="step-desc">Modèle unique, complétée en fin de projet par le chef de projet et challengée par le PMO.</div>
           </div>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="flow-num">1</div>
-              <div class="flow-title">Fiche de capitalisation (REX)</div>
-              <div class="flow-desc">Modèle unique, complétée en fin de projet par le chef de projet et challengée par le PMO.</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <div class="flow-num">2</div>
-              <div class="flow-title">Rétrospective d'équipe</div>
-              <div class="flow-desc">Format court « bien fonctionné / à améliorer / actions », animée par le PMO à chaque clôture.</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <div class="flow-num">3</div>
-              <div class="flow-title">Base de connaissances centralisée</div>
-              <div class="flow-desc">Fiches REX, risques clos et documents de clôture archivés, accessibles à tous les chefs de projet.</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step" style="padding-right:0;">
-              <div class="flow-num">4</div>
-              <div class="flow-title">Revue de portefeuille trimestrielle</div>
-              <div class="flow-desc">Le PMO présente à la Direction une synthèse des enseignements et propose une mise à jour du référentiel.</div>
-            </div>
+          <div class="timeline-step">
+            <div class="step-circle">2</div>
+            <div class="step-title">Rétrospective d'équipe</div>
+            <div class="step-desc">Format court « bien fonctionné / à améliorer / actions », animée par le PMO à chaque clôture.</div>
           </div>
-          <div class="loop-back">
-            <span class="icon">↺</span>
-            <span>Met à jour le référentiel documentaire et la grille de priorisation <span class="accent">(Partie 1)</span></span>
+          <div class="timeline-step">
+            <div class="step-circle">3</div>
+            <div class="step-title">Base de connaissances centralisée</div>
+            <div class="step-desc">Fiches REX, risques clos et documents de clôture archivés, accessibles à tous les chefs de projet.</div>
+          </div>
+          <div class="timeline-step">
+            <div class="step-circle">4</div>
+            <div class="step-title">Revue de portefeuille trimestrielle</div>
+            <div class="step-desc">Le PMO présente à la Direction une synthèse des enseignements et propose une mise à jour du référentiel.</div>
           </div>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Figure 2 — Le dispositif de capitalisation et sa boucle d'amélioration</span>
-          <span class="label muted">21 / 25</span>
+        <div class="loop-back-note">
+          <span class="icon">↺</span>
+          <span>Met à jour le référentiel documentaire et la grille de priorisation <strong>(Partie 1)</strong></span>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 22 · 4.2 FICHE DE CAPITALISATION light ══════════════ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Partie 4 · 4.2</span>
-          <span class="label muted">22 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; justify-content:center; gap: 1vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.3vw;">Fiche de capitalisation — modèle générique</h2>
-          <span class="table-caption" style="margin-top:0.4vh;">Tableau 12 — Fiche de capitalisation — modèle générique</span>
+    <!-- SLIDE 22: 4.2 Fiche de capitalisation -->
+    <div class="slide layout-bars">
+      <div class="slide-header">
+        <h4>Partie 4 · 4.2</h4>
+        <span class="tag">REX</span>
+      </div>
+      <div class="slide-content">
+        <h2>Fiche de capitalisation — modèle générique</h2>
+        <span class="table-caption">Tableau 12 — Fiche de capitalisation — modèle générique</span>
+        <div class="data-table-wrap">
           <table class="data-table">
             <thead><tr><th>Champ</th><th>Contenu attendu</th></tr></thead>
             <tbody>
@@ -2415,274 +1817,188 @@
               <tr><td>Action sur le référentiel / la méthode</td><td>Mise à jour concrète proposée (modèle, processus, critère de priorisation)</td></tr>
             </tbody>
           </table>
-          <p class="caption muted">Cette fiche sera complétée à la clôture réelle du projet Authentification forte, prévue fin octobre N.</p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">22 / 25</span>
-        </div>
-      </section>
+        <p style="margin-top: 0.8rem; font-size: 0.78rem;">Cette fiche sera complétée à la clôture réelle du projet Authentification forte, prévue fin octobre N.</p>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 23 · CE QUE LA DIRECTION RETIENT dark (custom) ═════ -->
-      <section class="slide dark">
-        <div class="slide-chrome">
-          <span class="label muted">Conclusion</span>
-          <span class="label muted">23 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; justify-content:center; gap: var(--gap-md);">
-          <div style="display:flex; flex-direction:column; gap: 0.8vh;">
-            <h2 class="h2" style="font-size: 2.4vw;">Ce que la Direction retient</h2>
-            <p class="lead muted" style="max-width: 90%;">
-              Ce dossier met en évidence une distinction utile : ce qui a le plus de valeur pour Time'Eats n'est pas toujours ce qui doit être fait en premier. L'authentification forte en est un bon exemple, engagée moins pour sa rentabilité directe que parce qu'elle sécurise la base sur laquelle le CRM et les applications mobiles vont s'appuyer.
-            </p>
-          </div>
-          <ul class="bullet-list compact">
+    <!-- SLIDE 23: Ce que la Direction retient -->
+    <div class="slide layout-split">
+      <div class="slide-header">
+        <h4>Conclusion</h4>
+        <span class="tag">Synthèse</span>
+      </div>
+      <div class="slide-content">
+        <h2>Ce que la Direction retient</h2>
+        <p style="margin-bottom: 1rem; max-width: 94%;">
+          Ce dossier met en évidence une distinction utile : ce qui a le plus de valeur pour Time'Eats n'est pas toujours ce qui doit être fait en premier. L'authentification forte en est un bon exemple, engagée moins pour sa rentabilité directe que parce qu'elle sécurise la base sur laquelle le CRM et les applications mobiles vont s'appuyer.
+        </p>
+        <div class="split-body">
+          <ul class="insight-list">
             <li>Un référentiel documentaire commun et un outil de priorisation objectif pour piloter les 11 projets du portefeuille</li>
             <li>Une méthodologie de conduite de projet démontrée sur l'authentification forte, réutilisable pour les projets suivants</li>
             <li>Des outils de clôture et de capitalisation qui garantissent que les enseignements d'un projet profitent aux suivants</li>
           </ul>
-          <div class="callout">
-            <strong>Demande au COPIL —</strong> valider l'usage systématique de ce référentiel pour les prochains projets lancés par la DSI.
+          <div class="split-right" style="border-left: none; padding-left: 0;">
+            <div class="split-highlight">
+              Demande au COPIL — valider l'usage systématique de ce référentiel pour les prochains projets lancés par la DSI.
+            </div>
+            <p style="font-style: italic; font-size: 0.82rem;">
+              Time'Eats vise un million de nouveaux clients et dix mille partenaires en deux ans : un objectif qui n'est pas tenable si chaque chef de projet continue de gérer son projet à sa façon.
+            </p>
           </div>
-          <p class="caption muted" style="font-style: italic; max-width: 88%;">
-            Time'Eats vise un million de nouveaux clients et dix mille partenaires en deux ans : un objectif qui n'est pas tenable si chaque chef de projet continue de gérer son projet à sa façon.
-          </p>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">23 / 25</span>
-        </div>
-      </section>
+      </div>
+    </div>
 
-      <!-- ═══════ SLIDE 24 · ORGANISATION DU GROUPE ET BILAN light (custom) ═ -->
-      <section class="slide light">
-        <div class="slide-chrome">
-          <span class="label muted">Conclusion</span>
-          <span class="label muted">24 / 25</span>
-        </div>
-        <div class="slide-body" style="display:flex; flex-direction:column; gap: 0.9vh; min-height:0;">
-          <h2 class="h2" style="font-size: 2.1vw;">Organisation du groupe et bilan</h2>
-          <span class="kicker">Organisation retenue sur les 4 jours du projet collaboratif</span>
-          <div class="mini-log-row4">
-            <div class="mini-log-cell">
-              <span class="mini-log-dt">J1</span>
-              <p class="mini-log-dd">Cadrage du sujet, répartition des rôles, démarrage du référentiel et du tableau de bord de portefeuille</p>
-            </div>
-            <div class="mini-log-cell">
-              <span class="mini-log-dt">J2</span>
-              <p class="mini-log-dd">Finalisation de la Partie 1, construction du plan de management du projet (Partie 2)</p>
-            </div>
-            <div class="mini-log-cell">
-              <span class="mini-log-dt">J3</span>
-              <p class="mini-log-dd">Tableau de bord projet, documents de clôture, retour d'expérience (Parties 2 à 4)</p>
-            </div>
-            <div class="mini-log-cell">
-              <span class="mini-log-dt">J4</span>
-              <p class="mini-log-dd">Préparation et répétition de la soutenance</p>
-            </div>
+    <!-- SLIDE 24: Organisation du groupe et bilan -->
+    <div class="slide layout-detail">
+      <div class="slide-header">
+        <h4>Conclusion</h4>
+        <span class="tag">Organisation &amp; bilan</span>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: clamp(1.4rem, 2.2vw, 2rem);">Organisation du groupe et bilan</h2>
+        <h4 style="margin-bottom: 0.6rem;">Organisation retenue sur les 4 jours du projet collaboratif</h4>
+        <div class="mini-log-row4" style="margin-bottom: 1.2rem;">
+          <div class="mini-log-cell">
+            <span class="mini-log-dt">J1</span>
+            <div class="mini-log-dd">Cadrage du sujet, répartition des rôles, démarrage du référentiel et du tableau de bord de portefeuille</div>
           </div>
-          <div class="dual-col" style="margin-top: 0.4vh;">
-            <div>
-              <span class="kicker">Points forts (à personnaliser par le groupe)</span>
-              <ul class="bullet-list tight" style="margin-top: 0.8vh;">
+          <div class="mini-log-cell">
+            <span class="mini-log-dt">J2</span>
+            <div class="mini-log-dd">Finalisation de la Partie 1, construction du plan de management du projet (Partie 2)</div>
+          </div>
+          <div class="mini-log-cell">
+            <span class="mini-log-dt">J3</span>
+            <div class="mini-log-dd">Tableau de bord projet, documents de clôture, retour d'expérience (Parties 2 à 4)</div>
+          </div>
+          <div class="mini-log-cell">
+            <span class="mini-log-dt">J4</span>
+            <div class="mini-log-dd">Préparation et répétition de la soutenance</div>
+          </div>
+        </div>
+        <div class="detail-body" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
+          <div class="detail-col">
+            <div class="detail-block">
+              <h3>Points forts (à personnaliser par le groupe)</h3>
+              <ul>
                 <li>Un référentiel et une méthode de priorisation qui s'appliquent à tout le portefeuille, pas seulement au projet choisi</li>
                 <li>Une répartition du travail selon les compétences de chacun, avec des points de synchronisation réguliers</li>
               </ul>
             </div>
-            <div>
-              <span class="kicker">Axes d'amélioration (à personnaliser par le groupe)</span>
-              <ul class="bullet-list tight" style="margin-top: 0.8vh;">
+          </div>
+          <div class="detail-col">
+            <div class="detail-block">
+              <h3>Axes d'amélioration (à personnaliser par le groupe)</h3>
+              <ul>
                 <li>Documents contractuels volontairement listés sans être formalisés, comme demandé par les consignes</li>
                 <li>Tester le tableau de bord de suivi sur un deuxième projet du portefeuille pour vérifier sa robustesse</li>
               </ul>
             </div>
           </div>
-          <div style="margin-top: 0.4vh; display:flex; flex-direction:column; gap: 0.6vh;">
-            <span class="label muted">Cellule PMO — DSI Time'Eats · [Prénom NOM] · [Prénom NOM] · [Prénom NOM] · [Prénom NOM] · [Prénom NOM]</span>
-            <p class="warn-note">⚠ Diapositive à personnaliser impérativement par le groupe : noms des membres, répartition réelle du travail, et bilan sincère de ce qui s'est passé pendant les 4 jours.</p>
-          </div>
         </div>
-        <div class="slide-foot">
-          <span class="label muted">Cellule PMO — DSI Time'Eats</span>
-          <span class="label muted">24 / 25</span>
-        </div>
-      </section>
-
-      <!-- ═══════ SLIDE 25 · END dark ═══════════════════════════════════════ -->
-      <section class="slide dark slide--end">
-        <h1 class="h1" data-anim="fade-up" data-delay="0">Merci de votre attention</h1>
-        <p class="lead muted" data-anim="fade-up" data-delay="1">Place aux questions.</p>
-        <span class="label muted" data-anim="fade-in" data-delay="2">Cellule PMO — DSI Time'Eats · 15 minutes de questions</span>
-      </section>
+        <p style="font-size: 0.8rem; margin-bottom: 0.4rem;">Cellule PMO — DSI Time'Eats · [Prénom NOM] · [Prénom NOM] · [Prénom NOM] · [Prénom NOM] · [Prénom NOM]</p>
+        <p class="warn-note">⚠ Diapositive à personnaliser impérativement par le groupe : noms des membres, répartition réelle du travail, et bilan sincère de ce qui s'est passé pendant les 4 jours.</p>
+      </div>
     </div>
-    <!-- /deck -->
 
-    <script>
-      /* ══════════════════════════════════════════════════════════════════════
-         SIGNAL PRESENTATION ENGINE
-         Self-contained navigation: keyboard, touch, mouse-wheel, nav-dots.
-         No external dependencies.
-         ══════════════════════════════════════════════════════════════════════ */
-      (function () {
-        "use strict";
+    <!-- SLIDE 25: Closing -->
+    <div class="slide layout-closing">
+      <div class="closing-decoration"></div>
+      <div class="closing-decoration-2"></div>
+      <div class="accent-line" style="margin: 0 auto 1.5rem;"></div>
+      <h1>Merci de votre attention</h1>
+      <p class="closing-sub">Place aux questions.</p>
+      <p class="closing-contact">Cellule PMO — DSI Time'Eats &nbsp;&middot;&nbsp; 15 minutes de questions</p>
+    </div>
 
-        /* ── State ─────────────────────────────────────────────────────────── */
-        const deck = document.getElementById("deck");
-        const slides = Array.from(document.querySelectorAll(".slide"));
-        const dotsEl = document.getElementById("nav-dots");
-        const counter = document.getElementById("slide-counter");
-        const total = slides.length;
-        let current = 0;
-        let animating = false;
+  </div>
 
-        /* ── Bootstrap: set deck width, build nav dots ─────────────────────── */
-        function init() {
-          // The deck is one wide strip — width equals N full viewports
-          deck.style.width = total + "00vw";
+  <!-- Navigation -->
+  <div class="slide-counter"><span id="current">1</span> / <span id="total">10</span></div>
+  <div class="keyboard-hint">Use arrow keys to navigate</div>
+  <div class="progress-bar" id="progress"></div>
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" aria-label="Previous slide">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)" aria-label="Next slide">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+  </div>
 
-          // Build one dot per slide
-          slides.forEach(function (_, i) {
-            const btn = document.createElement("button");
-            btn.className = "nav-dot";
-            btn.setAttribute("aria-label", "Go to slide " + (i + 1));
-            btn.addEventListener("click", function () {
-              goTo(i);
-            });
-            dotsEl.appendChild(btn);
-          });
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const currentEl = document.getElementById('current');
+    const totalEl = document.getElementById('total');
+    const progressEl = document.getElementById('progress');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-          // Activate the first slide immediately
-          goTo(0, true); // true = skip transition on load
+    let current = 0;
+    const total = slides.length;
+    totalEl.textContent = total;
+
+    function updateSlide() {
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'prev');
+        if (i === current) {
+          slide.classList.add('active');
+        } else if (i < current) {
+          slide.classList.add('prev');
         }
+      });
+      currentEl.textContent = current + 1;
+      progressEl.style.width = ((current + 1) / total * 100) + '%';
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+    }
 
-        /* ── goTo: the single source of truth for navigation ───────────────── */
-        function goTo(index, instant) {
-          // Clamp to valid range
-          index = Math.max(0, Math.min(total - 1, index));
-          if (index === current && !instant) return;
+    function changeSlide(dir) {
+      const next = current + dir;
+      if (next >= 0 && next < total) {
+        current = next;
+        updateSlide();
+      }
+    }
 
-          // Mark animating to block rapid key/swipe spam
-          animating = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        changeSlide(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        current = 0;
+        updateSlide();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        current = total - 1;
+        updateSlide();
+      }
+    });
 
-          // Deactivate current slide: reset animations by toggling is-active
-          const prev = slides[current];
-          prev.classList.remove("is-active");
-          // Force a reflow so removing then re-adding is-active (on same slide)
-          // actually re-triggers the keyframe animations
-          void prev.offsetWidth; // eslint-disable-line no-void
+    // Touch support
+    let touchStartX = 0;
+    let touchEndX = 0;
 
-          // Translate the deck
-          if (instant) {
-            // Remove transition temporarily for the initial load snap
-            deck.style.transition = "none";
-            deck.style.transform = "translateX(-" + index + "00vw)";
-            void deck.offsetWidth; // force reflow
-            deck.style.transition = "";
-          } else {
-            deck.style.transform = "translateX(-" + index + "00vw)";
-          }
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
 
-          // Activate new slide
-          current = index;
-          const next = slides[current];
-          next.classList.add("is-active");
+    document.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        changeSlide(diff > 0 ? 1 : -1);
+      }
+    }, { passive: true });
 
-          // Update nav dots
-          Array.from(dotsEl.children).forEach(function (dot, i) {
-            dot.classList.toggle("is-active", i === current);
-          });
+    updateSlide();
+  </script>
 
-          // Update counter: "3 / 12"
-          counter.textContent = current + 1 + " / " + total;
-
-          // Unlock after transition completes
-          const delay = instant
-            ? 0
-            : parseFloat(getComputedStyle(deck).transitionDuration) * 1000;
-          setTimeout(function () {
-            animating = false;
-          }, delay);
-        }
-
-        /* ── Keyboard navigation ──────────────────────────────────────────── */
-        document.addEventListener("keydown", function (e) {
-          if (animating) return;
-          if (
-            e.key === "ArrowRight" ||
-            e.key === "ArrowDown" ||
-            e.key === " "
-          ) {
-            e.preventDefault();
-            goTo(current + 1);
-          } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-            e.preventDefault();
-            goTo(current - 1);
-          } else if (e.key === "Home") {
-            e.preventDefault();
-            goTo(0);
-          } else if (e.key === "End") {
-            e.preventDefault();
-            goTo(total - 1);
-          }
-        });
-
-        /* ── Mouse-wheel navigation ───────────────────────────────────────── */
-        let wheelCooldown = false;
-        document.addEventListener(
-          "wheel",
-          function (e) {
-            e.preventDefault();
-            if (animating || wheelCooldown) return;
-            wheelCooldown = true;
-            setTimeout(function () {
-              wheelCooldown = false;
-            }, 900);
-            if (e.deltaY > 0 || e.deltaX > 0) {
-              goTo(current + 1);
-            } else {
-              goTo(current - 1);
-            }
-          },
-          { passive: false },
-        );
-
-        /* ── Touch swipe navigation ───────────────────────────────────────── */
-        let touchStartX = null;
-        let touchStartY = null;
-
-        document.addEventListener(
-          "touchstart",
-          function (e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-          },
-          { passive: true },
-        );
-
-        document.addEventListener(
-          "touchend",
-          function (e) {
-            if (touchStartX === null) return;
-            const dx = touchStartX - e.changedTouches[0].clientX;
-            const dy = touchStartY - e.changedTouches[0].clientY;
-            // Only respond if horizontal swipe is dominant
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-              if (animating) return;
-              if (dx > 0) {
-                goTo(current + 1); // swipe left: next
-              } else {
-                goTo(current - 1); // swipe right: prev
-              }
-            }
-            touchStartX = null;
-            touchStartY = null;
-          },
-          { passive: true },
-        );
-
-        /* ── Boot ─────────────────────────────────────────────────────────── */
-        init();
-      })();
-    </script>
-  </body>
+</body>
 </html>
