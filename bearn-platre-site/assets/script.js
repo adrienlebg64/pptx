@@ -70,6 +70,79 @@
     frame();
   }
 
+  // ---------- Carte Google Maps : chargée seulement à la demande ----------
+  var mapFrame = document.getElementById("map");
+  function loadMap() {
+    if (!mapFrame || mapFrame.querySelector("iframe")) return;
+    var iframe = document.createElement("iframe");
+    iframe.src = mapFrame.getAttribute("data-src");
+    iframe.title = "Carte Google Maps : Béarn Plâtre, Asté-Béon";
+    iframe.loading = "lazy";
+    iframe.referrerPolicy = "no-referrer-when-downgrade";
+    iframe.allowFullscreen = true;
+    mapFrame.innerHTML = "";
+    mapFrame.appendChild(iframe);
+  }
+  if (mapFrame) {
+    var mapOk = false;
+    try { mapOk = localStorage.getItem("bp-carte") === "ok"; } catch (e) {}
+    if (mapOk) loadMap();
+    var mapBtn = mapFrame.querySelector("[data-map-load]");
+    if (mapBtn) {
+      mapBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        try { localStorage.setItem("bp-carte", "ok"); } catch (err) {}
+        loadMap();
+      });
+    }
+  }
+
+  // ---------- Réalisations : visionneuse plein écran ----------
+  var shots = Array.prototype.slice.call(document.querySelectorAll(".gallery .shot a"));
+  if (shots.length && typeof HTMLDialogElement === "function") {
+    var box = document.createElement("dialog");
+    box.className = "lightbox";
+    box.setAttribute("aria-label", "Photo de chantier");
+    box.innerHTML =
+      '<img alt=""><p></p>' +
+      '<button class="lb-btn lb-close" type="button" aria-label="Fermer">×</button>' +
+      '<button class="lb-btn lb-prev" type="button" aria-label="Photo précédente">‹</button>' +
+      '<button class="lb-btn lb-next" type="button" aria-label="Photo suivante">›</button>';
+    document.body.appendChild(box);
+    var boxImg = box.querySelector("img");
+    var boxText = box.querySelector("p");
+    var current = 0;
+
+    var showShot = function (i) {
+      current = (i + shots.length) % shots.length;
+      var a = shots[current];
+      var img = a.querySelector("img");
+      var cap = a.parentNode.querySelector("figcaption");
+      boxImg.src = a.getAttribute("href");
+      boxImg.alt = img ? img.alt : "";
+      boxText.innerHTML = cap ? cap.innerHTML.replace("</b>", "</b> · ") : "";
+    };
+
+    shots.forEach(function (a, i) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        showShot(i);
+        box.showModal();
+      });
+    });
+    box.querySelector(".lb-close").addEventListener("click", function () { box.close(); });
+    box.querySelector(".lb-prev").addEventListener("click", function () { showShot(current - 1); });
+    box.querySelector(".lb-next").addEventListener("click", function () { showShot(current + 1); });
+    box.addEventListener("click", function (e) { if (e.target === box) box.close(); });
+    box.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") showShot(current - 1);
+      if (e.key === "ArrowRight") showShot(current + 1);
+    });
+    var prevBtn = box.querySelector(".lb-prev");
+    var nextBtn = box.querySelector(".lb-next");
+    if (shots.length < 2) { prevBtn.hidden = true; nextBtn.hidden = true; }
+  }
+
   // ---------- Formulaire de devis (envoi sans quitter la page) ----------
   var form = document.getElementById("devis-form");
   if (!form) return;
