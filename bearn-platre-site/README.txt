@@ -66,6 +66,28 @@ porte-documents et mètre, pièce en travaux, pièce terminée), dans le même s
 que le dessin d'accueil.
 
 
+PRESTATIONS (TEXTES POUR GOOGLE)
+--------------------------------
+Les 4 prestations ont un texte complet et une liste de travaux, écrits uniquement
+à partir de ce qui est confirmé (textes d'origine de l'entreprise, photos de
+chantier) : plaques de plâtre / placo, combles aménagés, bandes et joints,
+cloisons, doublages, faux plafonds, rampants, isolation des murs, rampants,
+plafonds et planchers. Titre et description de la page revus pour Google
+(« Plâtrier plaquiste en Vallée d'Ossau et à Pau »).
+
+À faire cocher par Béarn Plâtre (oui = on l'ajoute au site) :
+  [ ] Plaques hydrofuges (salles de bain, pièces humides)
+  [ ] Isolation phonique (entre pièces, entre étages)
+  [ ] Isolation des combles perdus (soufflage ou rouleaux)
+  [ ] Coffrages (gaines, tuyaux, poutres), niches, placards en placo
+  [ ] Enduits au plâtre traditionnel ou projeté
+  [ ] Cloisons ou plafonds coupe-feu (garage, chaufferie)
+  [ ] Peinture, ou finition « prête à peindre » garantie
+  [ ] Staff, moulures, corniches
+  [ ] Domaines couverts par la qualification RGE (voir le certificat papier)
+  [ ] Devis gratuit ? Déplacement gratuit ?
+
+
 TEXTES À FAIRE VALIDER PAR BÉARN PLÂTRE
 ---------------------------------------
 - Les 4 étapes « Comment se passe votre chantier » (visite sur place si besoin,
@@ -73,20 +95,29 @@ TEXTES À FAIRE VALIDER PAR BÉARN PLÂTRE
 - Mentions légales : la phrase « ni vendues ni cédées à des tiers ».
 
 
-AVANT LA MISE EN LIGNE
-----------------------
-1. Mentions légales : compléter forme juridique, directeur de publication,
-   hébergeur, responsable du traitement et durée de conservation
-   (tout ce qui est surligné en jaune).
-2. E-mail du formulaire : dans index.html, remplacer
-   mondeilhadrien@gmail.com (attribut action du <form>) par l'adresse définitive.
-   Au premier envoi, FormSubmit envoie un e-mail d'activation à cette adresse :
-   il faut cliquer le lien une fois.
-   Le formulaire ne marche qu'une fois le site en ligne, pas en ouvrant le fichier
-   en local.
-3. Image de partage : dans index.html, remplacer content="assets/partage.png" par
-   l'adresse complète (ex. https://www.votre-domaine.fr/assets/partage.png),
-   sinon Facebook/WhatsApp n'afficheront pas l'aperçu.
+AVANT LA MISE EN LIGNE (OBLIGATOIRE)
+------------------------------------
+1. Nom de domaine + hébergement (ex. OVHcloud, o2switch), au nom de l'entreprise.
+2. Mentions légales (tout ce qui est surligné en jaune) : forme juridique
+   (EURL d'après Pappers, à confirmer), nom du dirigeant (directeur de la
+   publication), hébergeur, responsable du traitement, durée de conservation.
+3. Médiateur de la consommation : obligatoire quand on travaille pour des
+   particuliers (nom, adresse, site du médiateur, souvent indiqués sur les devis).
+4. Formulaire de devis : il arrive encore sur l'adresse de test
+   (mondeilhadrien@gmail.com, attribut action du <form> dans index.html).
+   Mettre l'adresse définitive ; au premier envoi, FormSubmit envoie un e-mail
+   d'activation à cette adresse : cliquer le lien une fois.
+   Le formulaire ne marche qu'une fois le site en ligne.
+5. Image de partage : dans index.html, remplacer content="assets/partage.png" par
+   l'adresse complète (ex. https://www.votre-domaine.fr/assets/partage.png).
+
+
+APRÈS LA MISE EN LIGNE (CONSEILLÉ)
+----------------------------------
+- Créer / récupérer la fiche Google « Béarn Plâtre » et demander des avis aux
+  clients contents (c'est le levier n°1 pour être trouvé localement).
+- Déclarer le site dans Google Search Console (gratuit).
+- Ajouter des photos de chantiers terminés au fil de l'eau.
 
 
 FICHIERS
