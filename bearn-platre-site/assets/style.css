@@ -1035,6 +1035,8 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
 .form-status.is-visible { display: block; }
 .form-status.is-error { border-left-color: var(--red); }
 .form-status b { display: block; margin-bottom: 2px; }
+.form-status .status-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.form-status .status-actions .btn { min-height: 44px; }
 
 /* devis en 3 étapes */
 .wiz-progress, .wiz-nav { display: none; }

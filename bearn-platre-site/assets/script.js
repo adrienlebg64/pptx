@@ -363,10 +363,46 @@
   var status = form.querySelector(".form-status");
   var button = form.querySelector('button[type="submit"]');
   var phone = "06 30 39 21 57";
+  var tel = "tel:+33630392157";
+  var mailbox = "jerome.mondeilh@orange.fr";
 
-  function show(kind, title, text) {
+  // Message sous le formulaire ; `mail` = lien mailto: de secours (demande déjà rédigée)
+  function show(kind, title, text, mail) {
     status.className = "form-status is-visible" + (kind === "error" ? " is-error" : "");
     status.innerHTML = "<b>" + title + "</b>" + text;
+    if (!mail) return;
+    var actions = document.createElement("span");
+    actions.className = "status-actions";
+    var a = document.createElement("a");
+    a.className = "btn btn-red";
+    a.href = mail;
+    a.textContent = "Envoyer par e-mail";
+    var b = document.createElement("a");
+    b.className = "btn btn-line";
+    b.href = tel;
+    b.textContent = "Appeler le " + phone;
+    actions.appendChild(a);
+    actions.appendChild(b);
+    status.appendChild(actions);
+  }
+
+  // Même demande, prête à partir depuis la messagerie du visiteur
+  function mailtoLink(data) {
+    var lines = [
+      "Bonjour,", "",
+      "Demande de devis depuis le site :",
+      "Travaux : " + data.Travaux,
+      "Type de chantier : " + data.Chantier,
+      "Surface : " + data.Surface,
+      "Délai : " + data["Délai"],
+      "Commune : " + (data.Commune || "Non précisée")
+    ];
+    if (data.Message) lines.push("Projet : " + data.Message);
+    lines.push("", "Nom : " + data.Nom, "Téléphone : " + data["Téléphone"], "E-mail : " + data.email);
+    var body = lines.join("\n");
+    if (body.length > 1500) body = body.slice(0, 1500) + "…";
+    return "mailto:" + mailbox + "?subject=" + encodeURIComponent(data._subject) +
+      "&body=" + encodeURIComponent(body.replace(/\n/g, "\r\n"));
   }
 
   // Étapes : sans JavaScript, tout le formulaire s'affiche d'un bloc
@@ -392,7 +428,7 @@
     stepIndex = Math.max(0, Math.min(steps.length - 1, i));
     steps.forEach(function (s, k) { s.classList.toggle("is-active", k === stepIndex); });
     marks.forEach(function (m, k) {
-      m.classList.toggle("is-stepIndex", k === stepIndex);
+      m.classList.toggle("is-current", k === stepIndex);
       m.classList.toggle("is-done", k < stepIndex);
     });
     if (wizPrev) wizPrev.hidden = stepIndex === 0;
@@ -463,40 +499,68 @@
     // Piège à robots : champ invisible rempli = envoi ignoré
     if (form.querySelector('[name="_honey"]').value) return;
 
-    var data = new FormData(form);
-    var travaux = data.getAll("Travaux");
-    data.delete("Travaux");
-    data.set("Travaux", travaux.length ? travaux.join(", ") : "Non précisé");
-    ["Chantier", "Surface", "Délai"].forEach(function (k) { if (!data.get(k)) data.set(k, "Non précisé"); });
-    data.set("_replyto", data.get("email"));
-    var commune = (data.get("Commune") || "").trim();
-    data.set("_subject", "Devis " + (commune || "commune non précisée") + " : " + data.get("Travaux"));
+    var fd = new FormData(form);
+    var data = {};
+    fd.forEach(function (v, k) { if (k !== "Travaux") data[k] = typeof v === "string" ? v.trim() : v; });
+    var travaux = fd.getAll("Travaux");
+    data.Travaux = travaux.length ? travaux.join(", ") : "Non précisé";
+    ["Chantier", "Surface", "Délai"].forEach(function (k) { if (!data[k]) data[k] = "Non précisé"; });
+    data._replyto = data.email;
+    data._subject = "Devis " + (data.Commune || "commune non précisée") + " : " + data.Travaux;
+    var mail = mailtoLink(data);
+
+    function done() {
+      button.removeAttribute("aria-busy");
+      status.setAttribute("tabindex", "-1");
+      status.focus({ preventScroll: true });
+      status.scrollIntoView({ behavior: calm ? "instant" : "smooth", block: "center" });
+    }
+
+    // Page ouverte depuis l'ordinateur (fichier ou aperçu) : FormSubmit refuse ces pages
+    if (!/^https?:$/.test(location.protocol)) {
+      show("error", "Aperçu hors ligne : l'envoi marchera une fois le site en ligne.",
+        "En attendant, la demande peut partir par e-mail (elle est déjà rédigée) ou par téléphone.", mail);
+      done();
+      return;
+    }
 
     button.setAttribute("aria-busy", "true");
     status.className = "form-status";
 
+    // Pas de réponse au bout de 20 s : on abandonne et on propose l'e-mail
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : 0;
+
     fetch(form.action.replace("formsubmit.co/", "formsubmit.co/ajax/"), {
       method: "POST",
-      headers: { Accept: "application/json" },
-      body: data
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(data),
+      signal: ctrl ? ctrl.signal : undefined
     })
-      .then(function (res) { return res.json().then(function (json) { return { ok: res.ok, json: json }; }); })
-      .then(function (r) {
-        if (!r.ok || String(r.json.success) !== "true") throw new Error(r.json.message || "Erreur");
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (String(json.success) !== "true") {
+          var err = new Error(json.message || "Erreur");
+          err.activation = /activ/i.test(json.message || "");
+          throw err;
+        }
         form.reset();
         if (steps.length && wizNext) goTo(0, false);
         show("ok", "Merci, votre demande est bien envoyée.",
           "Nous vous recontactons dès que possible. Pour une question urgente : " + phone + ".");
       })
-      .catch(function () {
-        show("error", "L'envoi n'a pas abouti.",
-          "Merci de réessayer dans un instant, ou d'appeler directement le " + phone + ".");
+      .catch(function (err) {
+        if (err && err.activation) {
+          show("error", "Le formulaire doit d'abord être activé.",
+            "FormSubmit vient d'envoyer un e-mail à l'adresse de réception : cliquer sur « Activate Form », puis renvoyer la demande.", mail);
+        } else {
+          show("error", "L'envoi n'a pas abouti.",
+            "Votre demande peut partir par e-mail (elle est déjà rédigée) ou par téléphone.", mail);
+        }
       })
       .then(function () {
-        button.removeAttribute("aria-busy");
-        status.setAttribute("tabindex", "-1");
-        status.focus({ preventScroll: true });
-        status.scrollIntoView({ behavior: calm ? "instant" : "smooth", block: "center" });
+        clearTimeout(timer);
+        done();
       });
   });
 })();
