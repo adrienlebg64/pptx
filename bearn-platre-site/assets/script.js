@@ -7,6 +7,12 @@
     el.textContent = new Date().getFullYear();
   });
 
+  // MediaQueryList.addEventListener n'existe pas avant Safari 14
+  function onMediaChange(mq, fn) {
+    if (mq.addEventListener) mq.addEventListener("change", fn);
+    else if (mq.addListener) mq.addListener(fn);
+  }
+
   // ---------- Menu mobile ----------
   var toggle = document.querySelector(".menu-toggle");
   var nav = document.getElementById("main-nav");
@@ -15,6 +21,7 @@
     if (!toggle || !nav) return;
     toggle.setAttribute("aria-expanded", String(open));
     nav.classList.toggle("is-open", open);
+    document.documentElement.classList.toggle("menu-open", open);
   }
 
   if (toggle && nav) {
@@ -27,7 +34,7 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") setMenu(false);
     });
-    window.matchMedia("(min-width: 961px)").addEventListener("change", function () { setMenu(false); });
+    onMediaChange(window.matchMedia("(min-width: 961px)"), function () { setMenu(false); });
   }
 
   // ---------- En-tête : bordure au défilement ----------
@@ -64,7 +71,7 @@
     var frame = function () {
       art.setAttribute("viewBox", mq.matches ? "4 8 392 356" : "4 8 520 356");
     };
-    mq.addEventListener("change", frame);
+    onMediaChange(mq, frame);
     frame();
   }
 
@@ -76,7 +83,8 @@
   function readConsent() {
     try {
       var c = JSON.parse(localStorage.getItem(CONSENT_KEY));
-      if (c && typeof c.maps === "boolean" && Date.now() - c.t < CONSENT_DAYS * 864e5) return c.maps;
+      var age = c ? Date.now() - c.t : -1;
+      if (c && typeof c.maps === "boolean" && age >= 0 && age < CONSENT_DAYS * 864e5) return c.maps;
     } catch (e) {}
     return sessionChoice;
   }
@@ -97,6 +105,7 @@
     var iframe = document.createElement("iframe");
     iframe.src = mapFrame.getAttribute("data-src");
     iframe.title = "Carte Google Maps : Béarn Plâtre, Asté-Béon";
+    iframe.loading = "lazy";
     iframe.referrerPolicy = "no-referrer-when-downgrade";
     iframe.allowFullscreen = true;
     mapFrame.innerHTML = "";
@@ -108,15 +117,29 @@
     bindMapButton();
   }
 
+  // Annonce discrète pour les lecteurs d'écran
+  var live = document.createElement("p");
+  live.className = "visually-hidden";
+  live.setAttribute("role", "status");
+  document.body.appendChild(live);
+
   var banner = null;
+  var opener = null; // élément qui a rouvert le bandeau, pour y rendre le focus
+
+  function reserveSpace() {
+    // laisse de la place en bas de page pour que le pied de page ne reste pas caché sous le bandeau
+    var open = banner && !banner.hidden;
+    document.documentElement.classList.toggle("cookie-open", !!open);
+    document.documentElement.style.setProperty("--cookie-h", open ? banner.offsetHeight + "px" : "0px");
+  }
   function openBanner(focus) {
     if (!banner) {
       banner = document.createElement("div");
       banner.className = "cookie-banner";
       banner.setAttribute("role", "region");
-      banner.setAttribute("aria-label", "Cookies");
+      banner.setAttribute("aria-labelledby", "cookie-title");
       banner.innerHTML =
-        '<p class="cookie-title">Cookies</p>' +
+        '<h2 class="cookie-title" id="cookie-title">Cookies</h2>' +
         "<p>La carte de la rubrique « Secteur » est fournie par Google Maps, qui dépose des cookies. " +
         'Acceptez-vous ces cookies ? <a href="mentions-legales.html#cookies">En savoir plus</a></p>' +
         '<div class="cookie-actions">' +
@@ -126,24 +149,51 @@
       banner.querySelectorAll("[data-consent]").forEach(function (b) {
         b.addEventListener("click", function () { setConsent(b.getAttribute("data-consent") === "true"); });
       });
-      document.body.appendChild(banner);
+      // en tête du document (juste après le lien d'évitement) : atteint en premier au clavier
+      var skip = document.querySelector(".skip");
+      document.body.insertBefore(banner, skip ? skip.nextSibling : document.body.firstChild);
+      window.addEventListener("resize", reserveSpace);
     }
     banner.hidden = false;
-    if (focus) banner.querySelector("button").focus();
+    reserveSpace();
+    if (focus) {
+      opener = document.activeElement;
+      banner.querySelector("button").focus();
+    }
+  }
+  function closeBanner() {
+    if (!banner || banner.hidden) return;
+    var hadFocus = banner.contains(document.activeElement);
+    banner.hidden = true;
+    reserveSpace();
+    if (hadFocus) {
+      var target = opener && document.contains(opener) ? opener : document.getElementById("contenu");
+      if (target === document.getElementById("contenu")) target.setAttribute("tabindex", "-1");
+      if (target) target.focus({ preventScroll: true });
+    }
+    opener = null;
+  }
+  function applyConsent() {
+    var c = readConsent();
+    if (c === true) showMap(); else hideMap();
+    if (c === null && mapFrame) openBanner(false);
+    else if (c !== null) closeBanner();
   }
   function setConsent(maps) {
     saveConsent(maps);
-    if (banner) banner.hidden = true;
     if (maps) showMap(); else hideMap();
+    closeBanner();
+    live.textContent = maps ? "Choix enregistré : carte Google Maps acceptée." : "Choix enregistré : carte Google Maps refusée.";
   }
 
   bindMapButton();
-  var choice = readConsent();
-  if (choice === true) showMap();
-  else if (choice === null && mapFrame) openBanner(false);
+  applyConsent();
   document.querySelectorAll("[data-consent-open]").forEach(function (el) {
     el.addEventListener("click", function (e) { e.preventDefault(); openBanner(true); });
   });
+  // Choix modifié sur une autre page puis retour arrière (cache du navigateur), ou dans un autre onglet
+  window.addEventListener("pageshow", function (e) { if (e.persisted) applyConsent(); });
+  window.addEventListener("storage", function (e) { if (e.key === CONSENT_KEY || e.key === null) applyConsent(); });
 
   // ---------- Réalisations : visionneuse plein écran ----------
   var shots = Array.prototype.slice.call(document.querySelectorAll(".gallery .shot a"));
