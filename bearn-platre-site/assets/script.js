@@ -68,33 +68,6 @@
     frame();
   }
 
-  // ---------- Carte Google Maps : chargée seulement à la demande ----------
-  var mapFrame = document.getElementById("map");
-  function loadMap() {
-    if (!mapFrame || mapFrame.querySelector("iframe")) return;
-    var iframe = document.createElement("iframe");
-    iframe.src = mapFrame.getAttribute("data-src");
-    iframe.title = "Carte Google Maps : Béarn Plâtre, Asté-Béon";
-    iframe.loading = "lazy";
-    iframe.referrerPolicy = "no-referrer-when-downgrade";
-    iframe.allowFullscreen = true;
-    mapFrame.innerHTML = "";
-    mapFrame.appendChild(iframe);
-  }
-  if (mapFrame) {
-    var mapOk = false;
-    try { mapOk = localStorage.getItem("bp-carte") === "ok"; } catch (e) {}
-    if (mapOk) loadMap();
-    var mapBtn = mapFrame.querySelector("[data-map-load]");
-    if (mapBtn) {
-      mapBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        try { localStorage.setItem("bp-carte", "ok"); } catch (err) {}
-        loadMap();
-      });
-    }
-  }
-
   // ---------- Réalisations : visionneuse plein écran ----------
   var shots = Array.prototype.slice.call(document.querySelectorAll(".gallery .shot a"));
   if (shots.length && typeof HTMLDialogElement === "function") {

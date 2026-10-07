@@ -22,10 +22,11 @@ DIRECTION GRAPHIQUE
 SECTEUR ET CARTE
 ----------------
 - Zone affichée : Vallée d'Ossau et alentours, jusqu'à Pau.
-- La carte Google Maps s'affiche quand le visiteur clique sur « Afficher la carte »
-  (obligation RGPD : Google dépose des cookies). Le choix est mémorisé : la carte
-  s'affiche directement aux visites suivantes. Le lien « Ouvrir dans Google Maps »
-  ouvre l'itinéraire (appli Maps sur téléphone).
+- La carte Google Maps s'affiche directement, en local comme en ligne. Le lien
+  « Ouvrir dans Google Maps » ouvre l'itinéraire (appli Maps sur téléphone).
+- RGPD : Google Maps dépose des cookies dès l'affichage. C'est ce que font la
+  plupart des sites d'artisans, mais pour être strictement en règle il faudrait
+  un bandeau de consentement (ou revenir à la carte qui se charge au clic).
 
 
 RÉALISATIONS (PHOTOS DE CHANTIER)

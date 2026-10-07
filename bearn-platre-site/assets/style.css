@@ -658,35 +658,6 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
 .map-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .map-bg path { fill: none; stroke: #7f9cbb; stroke-width: .8; opacity: .3; }
 .map-bg path:nth-child(4n) { opacity: .5; }
-.map-consent {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 24px;
-  text-align: center;
-  color: #c9d4df;
-  font-size: 15px;
-  background: radial-gradient(closest-side, rgba(16, 42, 70, .92), rgba(16, 42, 70, .55));
-}
-.map-consent b { color: var(--white); font-size: 19px; font-stretch: 106%; }
-.map-consent .btn { margin: 18px 0 12px; min-height: 48px; }
-.map-consent small { max-width: 30em; font-size: 12.5px; color: #93a6ba; }
-.map-pin {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  margin-bottom: 10px;
-  border-radius: 50%;
-  background: var(--red);
-  color: var(--white);
-  box-shadow: 0 0 0 8px rgba(192, 40, 47, .25);
-}
-.map-pin svg { width: 22px; height: 22px; }
 .map-card figcaption {
   display: flex;
   flex-wrap: wrap;
