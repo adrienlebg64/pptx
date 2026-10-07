@@ -84,10 +84,20 @@ AVANT LA MISE EN LIGNE
    dirigeant, hébergeur).
 3. Formulaire de devis : il arrive encore sur l'adresse de test
    (mondeilhadrien@gmail.com, attribut action du <form> dans index.html).
-   Mettre l'adresse définitive ; au premier envoi, FormSubmit envoie un e-mail
-   d'activation à cette adresse : cliquer le lien une fois.
+   Mettre l'adresse définitive.
 4. Image de partage : dans index.html, remplacer content="assets/partage.png" par
    l'adresse complète (ex. https://www.votre-domaine.fr/assets/partage.png).
+
+
+JUSTE APRÈS LA MISE EN LIGNE (OBLIGATOIRE)
+------------------------------------------
+Activer le formulaire : depuis le site en ligne, à son adresse définitive
+(toujours la même, avec ou sans www), envoyer soi-même une demande de test.
+FormSubmit envoie alors un e-mail (en anglais) à l'adresse de réception :
+cliquer « Activate Form » (regarder aussi dans les indésirables), puis refaire
+un essai. Un essai fait sur l'ordinateur (fichier ou localhost) ne compte pas.
+Tant que ce n'est pas fait, les visiteurs voient « L'envoi n'a pas abouti »
+avec un bouton pour envoyer leur demande par e-mail ou appeler.
 
 
 APRÈS LA MISE EN LIGNE (CONSEILLÉ)

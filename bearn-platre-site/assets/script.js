@@ -380,29 +380,32 @@
     var b = document.createElement("a");
     b.className = "btn btn-line";
     b.href = tel;
-    b.textContent = "Appeler le " + phone;
+    b.textContent = "Appeler le " + phone.replace(/ /g, "\u00a0");
     actions.appendChild(a);
     actions.appendChild(b);
     status.appendChild(actions);
   }
 
-  // Même demande, prête à partir depuis la messagerie du visiteur
+  // Même demande, prête à partir depuis la messagerie du visiteur.
+  // Coordonnées en premier ; seul le texte libre est raccourci (sans couper un emoji).
   function mailtoLink(data) {
+    var msg = data.Message || "";
+    if (msg.length > 1000) msg = msg.slice(0, 1000).replace(/[\uD800-\uDBFF]$/, "") + "…";
     var lines = [
       "Bonjour,", "",
       "Demande de devis depuis le site :",
+      "Nom : " + data.Nom,
+      "Téléphone : " + data["Téléphone"],
+      "E-mail : " + data.email, "",
       "Travaux : " + data.Travaux,
       "Type de chantier : " + data.Chantier,
       "Surface : " + data.Surface,
       "Délai : " + data["Délai"],
       "Commune : " + (data.Commune || "Non précisée")
     ];
-    if (data.Message) lines.push("Projet : " + data.Message);
-    lines.push("", "Nom : " + data.Nom, "Téléphone : " + data["Téléphone"], "E-mail : " + data.email);
-    var body = lines.join("\n");
-    if (body.length > 1500) body = body.slice(0, 1500) + "…";
+    if (msg) lines.push("", "Projet : " + msg);
     return "mailto:" + mailbox + "?subject=" + encodeURIComponent(data._subject) +
-      "&body=" + encodeURIComponent(body.replace(/\n/g, "\r\n"));
+      "&body=" + encodeURIComponent(lines.join("\r\n"));
   }
 
   // Étapes : sans JavaScript, tout le formulaire s'affiche d'un bloc
@@ -507,7 +510,8 @@
     ["Chantier", "Surface", "Délai"].forEach(function (k) { if (!data[k]) data[k] = "Non précisé"; });
     data._replyto = data.email;
     data._subject = "Devis " + (data.Commune || "commune non précisée") + " : " + data.Travaux;
-    var mail = mailtoLink(data);
+    var mail;
+    try { mail = mailtoLink(data); } catch (err) { mail = "mailto:" + mailbox; }
 
     function done() {
       button.removeAttribute("aria-busy");
@@ -540,23 +544,21 @@
       .then(function (res) { return res.json(); })
       .then(function (json) {
         if (String(json.success) !== "true") {
-          var err = new Error(json.message || "Erreur");
-          err.activation = /activ/i.test(json.message || "");
-          throw err;
+          // Formulaire pas encore activé : message pour le propriétaire dans la console,
+          // le visiteur, lui, voit l'échec normal avec l'e-mail de secours
+          if (/activ/i.test(json.message || "") && window.console) {
+            console.warn("FormSubmit : formulaire à activer. Cliquer « Activate Form » dans l'e-mail reçu à l'adresse de réception (envoi de test depuis le site en ligne).");
+          }
+          throw new Error(json.message || "Erreur");
         }
         form.reset();
         if (steps.length && wizNext) goTo(0, false);
         show("ok", "Merci, votre demande est bien envoyée.",
           "Nous vous recontactons dès que possible. Pour une question urgente : " + phone + ".");
       })
-      .catch(function (err) {
-        if (err && err.activation) {
-          show("error", "Le formulaire doit d'abord être activé.",
-            "FormSubmit vient d'envoyer un e-mail à l'adresse de réception : cliquer sur « Activate Form », puis renvoyer la demande.", mail);
-        } else {
-          show("error", "L'envoi n'a pas abouti.",
-            "Votre demande peut partir par e-mail (elle est déjà rédigée) ou par téléphone.", mail);
-        }
+      .catch(function () {
+        show("error", "L'envoi n'a pas abouti.",
+          "Votre demande peut partir par e-mail (elle est déjà rédigée) ou par téléphone.", mail);
       })
       .then(function () {
         clearTimeout(timer);
