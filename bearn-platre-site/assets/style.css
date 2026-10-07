@@ -348,6 +348,9 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
   font-weight: 750;
   color: var(--ink);
 }
+.hero-facts .fact-rge { display: flex; align-items: center; gap: 10px; }
+.hero-facts .fact-rge img { width: 34px; height: 40px; flex: none; }
+.hero-facts .fact-rge > span { margin: 0; }
 .hero-facts span {
   display: block;
   margin-top: 2px;
@@ -560,6 +563,9 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
 }
 .factsheet dd { margin: 0; font-size: 16px; font-weight: 550; color: var(--ink); }
 .factsheet dd a { text-decoration: none; }
+.factsheet .dd-rge { display: flex; align-items: flex-start; gap: 12px; }
+.factsheet .dd-rge img { width: 34px; height: 40px; flex: none; }
+.factsheet .dd-rge small { display: block; margin-top: 4px; font-size: 13.5px; font-weight: 400; line-height: 1.45; color: var(--muted); }
 .factsheet dd a:hover { color: var(--red); }
 .factsheet .mono { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 
@@ -761,6 +767,11 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
 }
 .shot { position: relative; margin: 0; overflow: hidden; background: var(--paper-2); }
 .shot:first-child { grid-column: span 2; grid-row: span 2; }
+/* trois photos en portrait, côte à côte */
+.gallery.gallery--trio { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: auto; gap: 16px; }
+.gallery--trio .shot:first-child { grid-column: auto; grid-row: auto; }
+.gallery--trio .shot img { aspect-ratio: 4 / 5; }
+
 .shot--todo {
   display: grid;
   place-items: center;
@@ -1375,6 +1386,21 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
   .shot--todo { min-height: 180px; }
   .footer-main { grid-template-columns: 1fr; gap: 28px; }
   .gallery { grid-template-columns: 1fr; }
+  .gallery.gallery--trio {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 78%;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 0 var(--gutter) 6px;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .gallery--trio::-webkit-scrollbar { display: none; }
+  .gallery--trio .shot { scroll-snap-align: start; }
+  .hero-facts .fact-rge { align-items: center; }
   .shot:first-child { grid-column: auto; grid-row: auto; }
   .lightbox img { max-width: 100vw; max-height: calc(100vh - 160px); }
   .lb-prev, .lb-next { top: auto; bottom: 18px; transform: none; }

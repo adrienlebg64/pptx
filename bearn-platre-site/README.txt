@@ -36,17 +36,27 @@ SECTEUR ET CARTE
 
 RÉALISATIONS (PHOTOS DE CHANTIER)
 ---------------------------------
-La section « Quelques chantiers » est placée entre Prestations et L'entreprise.
-Pour l'instant elle contient 3 emplacements « Photo de chantier à venir » :
-NE PAS mettre le site en ligne tant qu'ils ne sont pas remplacés par de vraies photos.
-La visionneuse plein écran (clic sur une photo, flèches, Échap) est prête.
+La section « Quelques chantiers » (entre Prestations et L'entreprise) contient
+3 vraies photos fournies par Béarn Plâtre (combles, rampants et mezzanine,
+fenêtre de toit), au stade des bandes et joints :
+  - recadrées en portrait 4:5 (vignettes) + version grande pour la visionneuse ;
+  - aucune donnée cachée (pas de position GPS) ;
+  - photo de la mezzanine : version retouchée fournie (personne retirée).
+Fichiers : assets/photos/. Sur téléphone, les photos défilent à l'horizontale.
+À compléter si possible : la commune de chaque chantier (légendes).
+Pour en ajouter : envoyer les photos à Claude (commune + type de travaux),
+idéalement des chantiers terminés, et l'accord du client si l'intérieur est
+reconnaissable.
 
-Envoyer les photos à Claude, qui les recadre, les compresse et les intègre.
-Pour chaque photo, indiquer si possible :
-  - la commune,
-  - le type de travaux (ex. « Isolation des combles », « Cloisons et plafond »).
-Idéal : 5 à 12 photos, prises à l'horizontale, de chantiers terminés et propres.
-Les paires avant/après sont aussi possibles.
+
+RGE QUALIBAT
+------------
+Le logo RGE Qualibat est affiché à l'accueil, dans la fiche entreprise et cité
+en pied de page (assets/rge-qualibat.png, logo d'origine non modifié).
+À compléter : numéro de certificat Qualibat et domaines couverts (isolation des
+combles, des murs…), à afficher à côté du logo, comme le prévoit Qualibat.
+Ne parler d'aides de l'État (MaPrimeRénov', CEE…) que pour les travaux couverts
+par la qualification.
 
 
 DÉROULEMENT
