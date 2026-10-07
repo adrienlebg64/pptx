@@ -465,7 +465,7 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
   display: grid;
   grid-template-columns: minmax(0, 210px) minmax(0, 1fr);
   gap: 28px;
-  align-items: start;
+  align-items: center;
   padding: 32px 0 34px;
   border-top: 1px solid var(--line);
 }
@@ -485,25 +485,7 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
   letter-spacing: -.01em;
   line-height: 1.15;
 }
-.service p { margin: 0 0 16px; font-size: 16px; color: var(--muted); }
-.service-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.service-list li {
-  position: relative;
-  padding-left: 18px;
-  font-size: 15px;
-  font-weight: 550;
-  line-height: 1.4;
-  color: var(--ink);
-}
-.service-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: .5em;
-  width: 7px;
-  height: 7px;
-  background: var(--red);
-}
+.service p { margin: 0; font-size: 16px; color: var(--muted); }
 
 /* illustrations des prestations */
 .pict { width: 100%; height: auto; overflow: visible; }

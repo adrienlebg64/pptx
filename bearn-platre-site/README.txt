@@ -64,7 +64,7 @@ que le dessin d'accueil.
 
 PRESTATIONS
 -----------
-Textes courts : une phrase et quelques mots-clés par prestation.
+Textes courts : une seule phrase par prestation (pas de liste à puces).
 Titre de la page pour Google : « Plâtrier plaquiste en Vallée d'Ossau et à Pau ».
 Si Béarn Plâtre fait d'autres travaux (plaques hydrofuges, isolation phonique,
 combles perdus, coffrages…), il suffit de le dire pour les ajouter.
