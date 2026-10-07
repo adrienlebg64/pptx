@@ -75,6 +75,116 @@
     frame();
   }
 
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Dessin d'accueil en relief : les couches suivent la souris et s'écartent au défilement ----------
+  if (art && !calm && window.requestAnimationFrame) {
+    var hero = document.querySelector(".hero");
+    var DEPTH = [-3, 1, 5, 9];        // décalage de chaque couche selon la souris (fond -> devant)
+    var ISO = [-0.866, 0.5];          // direction « vers le visiteur » dans le dessin isométrique
+    var layers = [1, 2, 3, 4].map(function (n) {
+      return { n: n, g: art.querySelector(".l" + n + " .px"), layer: art.querySelector(".l" + n), lift: 0 };
+    });
+    var callouts = Array.prototype.map.call(art.querySelectorAll(".callout"), function (c) {
+      return {
+        el: c, n: +c.getAttribute("data-layer"),
+        ax: +c.getAttribute("data-ax"), ay: +c.getAttribute("data-ay"),
+        lx: +c.getAttribute("data-lx"), ly: +c.getAttribute("data-ly"),
+        dot: c.querySelector(".dot"), leader: c.querySelector(".leader")
+      };
+    });
+    var legendItems = Array.prototype.slice.call(document.querySelectorAll(".legend li[data-layer]"));
+    var goal = { mx: 0, my: 0, hover: 0, scroll: 0, hot: 0 };
+    var now = { mx: 0, my: 0, spread: 0 };
+    var running = false;
+
+    var tick = function () {
+      var k = 0.12, moving = false;
+      var spreadGoal = Math.max(goal.hover, goal.scroll);
+      [["mx", goal.mx], ["my", goal.my], ["spread", spreadGoal]].forEach(function (p) {
+        var d = p[1] - now[p[0]];
+        if (Math.abs(d) > 0.002) { now[p[0]] += d * k; moving = true; } else now[p[0]] = p[1];
+      });
+      layers.forEach(function (L, i) {
+        var liftGoal = goal.hot === L.n ? 1 : 0;
+        var d = liftGoal - L.lift;
+        if (Math.abs(d) > 0.002) { L.lift += d * 0.18; moving = true; } else L.lift = liftGoal;
+        var out = now.spread * i * 9 + L.lift * 12;
+        L.x = now.mx * DEPTH[i] + out * ISO[0];
+        L.y = now.my * DEPTH[i] * 0.6 + out * ISO[1];
+        L.g.setAttribute("transform", "translate(" + L.x.toFixed(2) + " " + L.y.toFixed(2) + ")");
+      });
+      callouts.forEach(function (c) {
+        var L = layers[c.n - 1];
+        c.dot.setAttribute("transform", "translate(" + L.x.toFixed(2) + " " + L.y.toFixed(2) + ")");
+        c.leader.setAttribute("d", "M" + (c.ax + L.x).toFixed(1) + "," + (c.ay + L.y).toFixed(1) + " L" + c.lx + "," + c.ly);
+      });
+      running = moving;
+      if (moving) requestAnimationFrame(tick);
+    };
+    var wake = function () { if (!running) { running = true; requestAnimationFrame(tick); } };
+
+    var setHot = function (n) {
+      goal.hot = n;
+      art.classList.toggle("has-hot", n > 0);
+      layers.forEach(function (L) { L.layer.classList.toggle("is-hot", L.n === n); });
+      callouts.forEach(function (c) { c.el.classList.toggle("is-hot", c.n === n); });
+      legendItems.forEach(function (li) { li.classList.toggle("is-hot", +li.getAttribute("data-layer") === n); });
+      wake();
+    };
+
+    // souris (ordinateur)
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches && hero) {
+      hero.addEventListener("pointermove", function (e) {
+        var r = art.getBoundingClientRect();
+        goal.mx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2)));
+        goal.my = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2)));
+        goal.hover = 0.55;
+        wake();
+      });
+      hero.addEventListener("pointerleave", function () { goal.mx = goal.my = goal.hover = 0; wake(); });
+    }
+    // survol d'un repère ou d'une couche : la couche ressort, les autres s'effacent
+    // (souris uniquement : au doigt, le navigateur simule des survols qui brouilleraient l'effet)
+    var mouseOnly = function (fn) { return function (e) { if (e.pointerType === "mouse") fn(); }; };
+    callouts.forEach(function (c) {
+      c.el.addEventListener("pointerenter", mouseOnly(function () { setHot(c.n); }));
+      c.el.addEventListener("pointerleave", mouseOnly(function () { setHot(0); }));
+      c.el.addEventListener("click", function () { setHot(goal.hot === c.n ? 0 : c.n); });
+    });
+    layers.forEach(function (L) {
+      L.layer.addEventListener("pointerenter", mouseOnly(function () { setHot(L.n); }));
+      L.layer.addEventListener("pointerleave", mouseOnly(function () { setHot(0); }));
+    });
+    // légende (téléphone) : un appui met la couche en avant, un second l'efface
+    legendItems.forEach(function (li) {
+      li.addEventListener("click", function () {
+        var n = +li.getAttribute("data-layer");
+        setHot(goal.hot === n ? 0 : n);
+      });
+    });
+    // défilement : le mur « s'ouvre » quand on descend
+    var onHeroScroll = function () {
+      var s = Math.max(0, Math.min(1, window.scrollY / 420));
+      if (Math.abs(s * 1.3 - goal.scroll) > 0.001) { goal.scroll = s * 1.3; wake(); }
+    };
+    window.addEventListener("scroll", onHeroScroll, { passive: true });
+    onHeroScroll();
+  }
+
+  // ---------- Déroulement : chaque scène s'anime en arrivant à l'écran ----------
+  var stepItems = document.querySelectorAll(".steps li");
+  if ("IntersectionObserver" in window) {
+    var stepIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add("is-in"); stepIo.unobserve(entry.target); }
+      });
+    }, { threshold: 0.35 });
+    stepItems.forEach(function (li) { stepIo.observe(li); });
+  } else {
+    stepItems.forEach(function (li) { li.classList.add("is-in"); });
+  }
+
   // ---------- Cookies : la carte Google Maps n'est chargée qu'avec l'accord du visiteur ----------
   var CONSENT_KEY = "bp-consent";
   var CONSENT_DAYS = 182; // environ 6 mois, durée recommandée par la CNIL
@@ -104,7 +214,7 @@
     if (!mapFrame || mapFrame.querySelector("iframe")) return;
     var iframe = document.createElement("iframe");
     iframe.src = mapFrame.getAttribute("data-src");
-    iframe.title = "Carte Google Maps : Béarn Plâtre, Asté-Béon";
+    iframe.title = "Carte Google Maps : Béarn Plâtre, Aste-Béon";
     iframe.loading = "lazy";
     iframe.referrerPolicy = "no-referrer-when-downgrade";
     iframe.allowFullscreen = true;
@@ -254,11 +364,88 @@
     status.innerHTML = "<b>" + title + "</b>" + text;
   }
 
+  // Étapes : sans JavaScript, tout le formulaire s'affiche d'un bloc
+  var steps = Array.prototype.slice.call(form.querySelectorAll(".wiz-step"));
+  var marks = Array.prototype.slice.call(form.querySelectorAll(".wiz-progress li"));
+  var prevBtn = form.querySelector(".wiz-prev");
+  var nextBtn = form.querySelector(".wiz-next");
+  var stepError = form.querySelector("#wiz-error-1");
+  var recap = form.querySelector(".wiz-recap");
+  var current = 0;
+
+  function values(name) {
+    return Array.prototype.map.call(form.querySelectorAll('[name="' + name + '"]:checked'), function (i) { return i.value; });
+  }
+  function fillRecap() {
+    if (!recap) return;
+    var bits = [values("Travaux").join(", "), values("Chantier")[0], values("Surface")[0], values("Délai")[0],
+      (form.querySelector('[name="Commune"]').value || "").trim()].filter(Boolean);
+    recap.querySelector(".wiz-recap-text").textContent = bits.join(" · ");
+    recap.hidden = !bits.length;
+  }
+  function goTo(i, focus) {
+    current = Math.max(0, Math.min(steps.length - 1, i));
+    steps.forEach(function (s, k) { s.classList.toggle("is-active", k === current); });
+    marks.forEach(function (m, k) {
+      m.classList.toggle("is-current", k === current);
+      m.classList.toggle("is-done", k < current);
+    });
+    if (prevBtn) prevBtn.hidden = current === 0;
+    if (nextBtn) nextBtn.hidden = current === steps.length - 1;
+    if (current === steps.length - 1) fillRecap();
+    if (focus) {
+      var top = form.getBoundingClientRect().top;
+      if (top < 0 || top > window.innerHeight * 0.6) form.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+      steps[current].querySelector(".wiz-legend").focus({ preventScroll: true });
+    }
+  }
+  function stepIsValid(i) {
+    if (i === 0) {
+      var ok = values("Travaux").length > 0;
+      if (stepError) stepError.hidden = ok;
+      if (!ok) steps[0].querySelector("input").focus();
+      return ok;
+    }
+    var fields = steps[i].querySelectorAll("input, textarea, select");
+    for (var k = 0; k < fields.length; k++) {
+      if (!fields[k].checkValidity()) { fields[k].reportValidity(); return false; }
+    }
+    return true;
+  }
+  if (steps.length && nextBtn) {
+    nextBtn.addEventListener("click", function () { if (stepIsValid(current)) goTo(current + 1, true); });
+    prevBtn.addEventListener("click", function () { goTo(current - 1, true); });
+    form.querySelectorAll('[name="Travaux"]').forEach(function (box) {
+      box.addEventListener("change", function () { if (stepError && values("Travaux").length) stepError.hidden = true; });
+    });
+    // Entrée dans un champ avant la dernière étape : passer à l'étape suivante
+    // (le navigateur n'envoie pas le formulaire quand le bouton « Envoyer » est caché)
+    form.addEventListener("keydown", function (e) {
+      var tag = e.target.tagName;
+      if (e.key !== "Enter" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A") return;
+      if (current < steps.length - 1) {
+        e.preventDefault();
+        if (stepIsValid(current)) goTo(current + 1, true);
+      }
+    });
+    var edit = form.querySelector(".wiz-edit");
+    if (edit) edit.addEventListener("click", function () { goTo(0, true); });
+    goTo(0, false);
+  }
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
 
+    // Touche Entrée avant la dernière étape : on passe simplement à l'étape suivante
+    if (steps.length && nextBtn && current < steps.length - 1) {
+      if (stepIsValid(current)) goTo(current + 1, true);
+      return;
+    }
     if (!form.checkValidity()) {
-      form.reportValidity();
+      var bad = form.querySelector(":invalid:not(fieldset)");
+      var owner = bad ? steps.indexOf(bad.closest(".wiz-step")) : -1;
+      if (owner > -1 && owner !== current) goTo(owner, false);
+      if (bad) bad.reportValidity(); else form.reportValidity();
       return;
     }
 
@@ -269,8 +456,10 @@
     var travaux = data.getAll("Travaux");
     data.delete("Travaux");
     data.set("Travaux", travaux.length ? travaux.join(", ") : "Non précisé");
-    if (!data.get("Chantier")) data.set("Chantier", "Non précisé");
+    ["Chantier", "Surface", "Délai"].forEach(function (k) { if (!data.get(k)) data.set(k, "Non précisé"); });
     data.set("_replyto", data.get("email"));
+    var commune = (data.get("Commune") || "").trim();
+    data.set("_subject", "Devis " + (commune || "commune non précisée") + " : " + data.get("Travaux"));
 
     button.setAttribute("aria-busy", "true");
     status.className = "form-status";
@@ -284,6 +473,7 @@
       .then(function (r) {
         if (!r.ok || String(r.json.success) !== "true") throw new Error(r.json.message || "Erreur");
         form.reset();
+        if (steps.length && nextBtn) goTo(0, false);
         show("ok", "Merci, votre demande est bien envoyée.",
           "Nous vous recontactons dès que possible. Pour une question urgente : " + phone + ".");
       })
