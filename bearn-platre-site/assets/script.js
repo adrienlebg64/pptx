@@ -69,7 +69,7 @@
   if (art) {
     var mq = window.matchMedia("(max-width: 720px)");
     var frame = function () {
-      art.setAttribute("viewBox", mq.matches ? "4 8 392 356" : "4 8 520 356");
+      art.setAttribute("viewBox", mq.matches ? "-40 8 436 380" : "4 8 520 356");
     };
     onMediaChange(mq, frame);
     frame();
@@ -147,14 +147,19 @@
     // survol d'un repère ou d'une couche : la couche ressort, les autres s'effacent
     // (souris uniquement : au doigt, le navigateur simule des survols qui brouilleraient l'effet)
     var mouseOnly = function (fn) { return function (e) { if (e.pointerType === "mouse") fn(); }; };
+    var lastPointer = "";
+    art.addEventListener("pointerdown", function (e) { lastPointer = e.pointerType; });
     callouts.forEach(function (c) {
       c.el.addEventListener("pointerenter", mouseOnly(function () { setHot(c.n); }));
       c.el.addEventListener("pointerleave", mouseOnly(function () { setHot(0); }));
-      c.el.addEventListener("click", function () { setHot(goal.hot === c.n ? 0 : c.n); });
+      // au doigt ou au stylet, un appui allume / éteint ; à la souris, le survol suffit
+      c.el.addEventListener("click", function () { if (lastPointer !== "mouse") setHot(goal.hot === c.n ? 0 : c.n); });
     });
-    layers.forEach(function (L) {
-      L.layer.addEventListener("pointerenter", mouseOnly(function () { setHot(L.n); }));
-      L.layer.addEventListener("pointerleave", mouseOnly(function () { setHot(0); }));
+    // zones de survol fixes : la couche peut ressortir sans quitter le curseur (pas de clignotement)
+    Array.prototype.forEach.call(art.querySelectorAll(".layer-hit"), function (hit) {
+      var n = +hit.getAttribute("data-layer");
+      hit.addEventListener("pointerenter", mouseOnly(function () { setHot(n); }));
+      hit.addEventListener("pointerleave", mouseOnly(function () { setHot(0); }));
     });
     // légende (téléphone) : un appui met la couche en avant, un second l'efface
     legendItems.forEach(function (li) {
@@ -319,11 +324,11 @@
     document.body.appendChild(box);
     var boxImg = box.querySelector("img");
     var boxText = box.querySelector("p");
-    var current = 0;
+    var lbIndex = 0;
 
     var showShot = function (i) {
-      current = (i + shots.length) % shots.length;
-      var a = shots[current];
+      lbIndex = (i + shots.length) % shots.length;
+      var a = shots[lbIndex];
       var img = a.querySelector("img");
       var cap = a.parentNode.querySelector("figcaption");
       boxImg.src = a.getAttribute("href");
@@ -339,16 +344,16 @@
       });
     });
     box.querySelector(".lb-close").addEventListener("click", function () { box.close(); });
-    box.querySelector(".lb-prev").addEventListener("click", function () { showShot(current - 1); });
-    box.querySelector(".lb-next").addEventListener("click", function () { showShot(current + 1); });
+    box.querySelector(".lb-prev").addEventListener("click", function () { showShot(lbIndex - 1); });
+    box.querySelector(".lb-next").addEventListener("click", function () { showShot(lbIndex + 1); });
     box.addEventListener("click", function (e) { if (e.target === box) box.close(); });
     box.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") showShot(current - 1);
-      if (e.key === "ArrowRight") showShot(current + 1);
+      if (e.key === "ArrowLeft") showShot(lbIndex - 1);
+      if (e.key === "ArrowRight") showShot(lbIndex + 1);
     });
-    var prevBtn = box.querySelector(".lb-prev");
-    var nextBtn = box.querySelector(".lb-next");
-    if (shots.length < 2) { prevBtn.hidden = true; nextBtn.hidden = true; }
+    var lbPrev = box.querySelector(".lb-prev");
+    var lbNext = box.querySelector(".lb-next");
+    if (shots.length < 2) { lbPrev.hidden = true; lbNext.hidden = true; }
   }
 
   // ---------- Formulaire de devis (envoi sans quitter la page) ----------
@@ -367,11 +372,11 @@
   // Étapes : sans JavaScript, tout le formulaire s'affiche d'un bloc
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wiz-step"));
   var marks = Array.prototype.slice.call(form.querySelectorAll(".wiz-progress li"));
-  var prevBtn = form.querySelector(".wiz-prev");
-  var nextBtn = form.querySelector(".wiz-next");
+  var wizPrev = form.querySelector(".wiz-prev");
+  var wizNext = form.querySelector(".wiz-next");
   var stepError = form.querySelector("#wiz-error-1");
   var recap = form.querySelector(".wiz-recap");
-  var current = 0;
+  var stepIndex = 0;
 
   function values(name) {
     return Array.prototype.map.call(form.querySelectorAll('[name="' + name + '"]:checked'), function (i) { return i.value; });
@@ -384,26 +389,29 @@
     recap.hidden = !bits.length;
   }
   function goTo(i, focus) {
-    current = Math.max(0, Math.min(steps.length - 1, i));
-    steps.forEach(function (s, k) { s.classList.toggle("is-active", k === current); });
+    stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+    steps.forEach(function (s, k) { s.classList.toggle("is-active", k === stepIndex); });
     marks.forEach(function (m, k) {
-      m.classList.toggle("is-current", k === current);
-      m.classList.toggle("is-done", k < current);
+      m.classList.toggle("is-stepIndex", k === stepIndex);
+      m.classList.toggle("is-done", k < stepIndex);
     });
-    if (prevBtn) prevBtn.hidden = current === 0;
-    if (nextBtn) nextBtn.hidden = current === steps.length - 1;
-    if (current === steps.length - 1) fillRecap();
+    if (wizPrev) wizPrev.hidden = stepIndex === 0;
+    if (wizNext) wizNext.hidden = stepIndex === steps.length - 1;
+    if (stepIndex === steps.length - 1) fillRecap();
     if (focus) {
       var top = form.getBoundingClientRect().top;
-      if (top < 0 || top > window.innerHeight * 0.6) form.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
-      steps[current].querySelector(".wiz-legend").focus({ preventScroll: true });
+      if (top < 0 || top > window.innerHeight * 0.6) form.scrollIntoView({ behavior: calm ? "instant" : "smooth", block: "start" });
+      steps[stepIndex].querySelector(".wiz-legend").focus({ preventScroll: true });
     }
   }
   function stepIsValid(i) {
     if (i === 0) {
       var ok = values("Travaux").length > 0;
       if (stepError) stepError.hidden = ok;
-      if (!ok) steps[0].querySelector("input").focus();
+      if (!ok) {
+        steps[0].querySelector("input").focus({ preventScroll: true });
+        if (stepError) stepError.scrollIntoView({ behavior: calm ? "instant" : "smooth", block: "center" });
+      }
       return ok;
     }
     var fields = steps[i].querySelectorAll("input, textarea, select");
@@ -412,9 +420,9 @@
     }
     return true;
   }
-  if (steps.length && nextBtn) {
-    nextBtn.addEventListener("click", function () { if (stepIsValid(current)) goTo(current + 1, true); });
-    prevBtn.addEventListener("click", function () { goTo(current - 1, true); });
+  if (steps.length && wizNext) {
+    wizNext.addEventListener("click", function () { if (stepIsValid(stepIndex)) goTo(stepIndex + 1, true); });
+    wizPrev.addEventListener("click", function () { goTo(stepIndex - 1, true); });
     form.querySelectorAll('[name="Travaux"]').forEach(function (box) {
       box.addEventListener("change", function () { if (stepError && values("Travaux").length) stepError.hidden = true; });
     });
@@ -423,9 +431,9 @@
     form.addEventListener("keydown", function (e) {
       var tag = e.target.tagName;
       if (e.key !== "Enter" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A") return;
-      if (current < steps.length - 1) {
+      if (stepIndex < steps.length - 1) {
         e.preventDefault();
-        if (stepIsValid(current)) goTo(current + 1, true);
+        if (stepIsValid(stepIndex)) goTo(stepIndex + 1, true);
       }
     });
     var edit = form.querySelector(".wiz-edit");
@@ -437,17 +445,20 @@
     e.preventDefault();
 
     // Touche Entrée avant la dernière étape : on passe simplement à l'étape suivante
-    if (steps.length && nextBtn && current < steps.length - 1) {
-      if (stepIsValid(current)) goTo(current + 1, true);
+    if (steps.length && wizNext && stepIndex < steps.length - 1) {
+      if (stepIsValid(stepIndex)) goTo(stepIndex + 1, true);
       return;
     }
     if (!form.checkValidity()) {
       var bad = form.querySelector(":invalid:not(fieldset)");
       var owner = bad ? steps.indexOf(bad.closest(".wiz-step")) : -1;
-      if (owner > -1 && owner !== current) goTo(owner, false);
+      if (owner > -1 && owner !== stepIndex) goTo(owner, false);
       if (bad) bad.reportValidity(); else form.reportValidity();
       return;
     }
+
+    // Envoi déjà en cours (double appui sur Entrée ou sur le bouton)
+    if (button.getAttribute("aria-busy") === "true") return;
 
     // Piège à robots : champ invisible rempli = envoi ignoré
     if (form.querySelector('[name="_honey"]').value) return;
@@ -473,7 +484,7 @@
       .then(function (r) {
         if (!r.ok || String(r.json.success) !== "true") throw new Error(r.json.message || "Erreur");
         form.reset();
-        if (steps.length && nextBtn) goTo(0, false);
+        if (steps.length && wizNext) goTo(0, false);
         show("ok", "Merci, votre demande est bien envoyée.",
           "Nous vous recontactons dès que possible. Pour une question urgente : " + phone + ".");
       })
@@ -483,7 +494,9 @@
       })
       .then(function () {
         button.removeAttribute("aria-busy");
-        status.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        status.setAttribute("tabindex", "-1");
+        status.focus({ preventScroll: true });
+        status.scrollIntoView({ behavior: calm ? "instant" : "smooth", block: "center" });
       });
   });
 })();

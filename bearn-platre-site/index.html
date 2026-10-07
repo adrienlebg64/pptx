@@ -274,6 +274,12 @@
 <circle class="screw" cx="172.9" cy="245.0" r="1.25"/>
 <circle class="screw" cx="172.9" cy="221.0" r="1.25"/>
 </g></g>
+<g class="layer-hits">
+<polygon class="layer-hit" data-layer="1" points="140.0,30.0 159.1,19.0 321.9,113.0 321.9,273.0 302.8,284.0 140.0,190.0"/>
+<polygon class="layer-hit" data-layer="2" points="91.5,58.0 105.4,50.0 268.2,144.0 268.2,304.0 254.3,312.0 91.5,218.0"/>
+<polygon class="layer-hit" data-layer="3" points="49.9,82.0 56.9,78.0 219.7,172.0 219.7,332.0 212.7,336.0 49.9,242.0"/>
+<polygon class="layer-hit" data-layer="4" points="13.6,103.0 17.0,101.0 179.8,195.0 179.8,355.0 176.4,357.0 13.6,263.0"/>
+</g>
 <g class="callouts">
 <g class="callout" data-layer="1" data-ax="276.8" data-ay="119.0" data-lx="360.0" data-ly="119.0">
 <path class="leader" d="M276.8,119.0 L360.0,119.0"/>
@@ -642,9 +648,10 @@
           <li><b>3</b><span>Coordonnées</span></li>
         </ol>
 
-        <fieldset class="wiz-step is-active" data-step="1">
-          <legend class="wiz-legend" tabindex="-1"><span class="wiz-count">Étape 1 sur 3</span>Quels travaux ?</legend>
-          <p class="wiz-hint">Plusieurs choix possibles.</p>
+        <fieldset class="wiz-step is-active" data-step="1" aria-describedby="wiz-hint-1">
+          <legend class="wiz-legend" tabindex="-1"><span class="wiz-count">Étape 1 sur 3</span>Quels travaux ? <i class="req">*</i></legend>
+          <p class="wiz-hint" id="wiz-hint-1">Au moins un choix, plusieurs possibles.</p>
+          <p class="wiz-error" id="wiz-error-1" role="alert" hidden>Choisissez au moins un type de travaux (ou « Autre »).</p>
           <div class="work-cards">
             <label class="work-card"><input type="checkbox" name="Travaux" value="Plaques de plâtre"><span class="wc-box" aria-hidden="true"></span><span class="wc-art"><svg class="pict" viewBox="0 0 240 160" aria-hidden="true"><line class="s-floor" x1="22" y1="140" x2="218" y2="140"/>
 <rect class="s-board" x="44" y="22" width="76" height="118"/>
@@ -697,7 +704,6 @@
 <line class="s-line" x1="186" y1="130" x2="186" y2="104"/></svg></span><span class="wc-label">Isolation intérieure</span></label>
             <label class="work-card wc-other"><input type="checkbox" name="Travaux" value="Autre"><span class="wc-box" aria-hidden="true"></span><span class="wc-art"><svg class="wc-plus" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="M24 16v16M16 24h16"/></svg></span><span class="wc-label">Autre</span></label>
           </div>
-          <p class="wiz-error" id="wiz-error-1" role="alert" hidden>Choisissez au moins un type de travaux (ou « Autre »).</p>
         </fieldset>
 
         <fieldset class="wiz-step" data-step="2">
