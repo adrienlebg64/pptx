@@ -30,19 +30,24 @@ SECTEUR ET CARTE
 
 RÉALISATIONS (PHOTOS DE CHANTIER)
 ---------------------------------
-La section est prête, avec visionneuse plein écran (clic sur une photo, flèches,
-Échap), mais masquée tant qu'il n'y a pas de photos.
+La section « Quelques chantiers » est placée entre Prestations et L'entreprise.
+Pour l'instant elle contient 3 emplacements « Photo de chantier à venir » :
+NE PAS mettre le site en ligne tant qu'ils ne sont pas remplacés par de vraies photos.
+La visionneuse plein écran (clic sur une photo, flèches, Échap) est prête.
 
-Pour l'activer : envoyer les photos à Claude, qui les recadre, les compresse et
-les intègre. Pour chaque photo, indiquer si possible :
+Envoyer les photos à Claude, qui les recadre, les compresse et les intègre.
+Pour chaque photo, indiquer si possible :
   - la commune,
   - le type de travaux (ex. « Isolation des combles », « Cloisons et plafond »).
 Idéal : 5 à 12 photos, prises à l'horizontale, de chantiers terminés et propres.
 Les paires avant/après sont aussi possibles.
 
-À la main : mettre les photos dans assets/photos/, adapter les noms, textes et
-légendes dans index.html (chercher id="realisations"), puis retirer l'attribut
-« hidden » sur la section ET sur le lien « Réalisations » du menu.
+
+DÉROULEMENT
+-----------
+Les 4 étapes sont illustrées par des scènes en 3D isométrique (téléphone,
+porte-documents et mètre, pièce en travaux, pièce terminée), dans le même style
+que le dessin d'accueil.
 
 
 TEXTES À FAIRE VALIDER PAR BÉARN PLÂTRE
