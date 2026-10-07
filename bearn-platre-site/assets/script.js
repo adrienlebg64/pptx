@@ -68,6 +68,83 @@
     frame();
   }
 
+  // ---------- Cookies : la carte Google Maps n'est chargée qu'avec l'accord du visiteur ----------
+  var CONSENT_KEY = "bp-consent";
+  var CONSENT_DAYS = 182; // environ 6 mois, durée recommandée par la CNIL
+  var sessionChoice = null; // si le navigateur bloque le stockage, le choix vaut pour la visite
+
+  function readConsent() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CONSENT_KEY));
+      if (c && typeof c.maps === "boolean" && Date.now() - c.t < CONSENT_DAYS * 864e5) return c.maps;
+    } catch (e) {}
+    return sessionChoice;
+  }
+  function saveConsent(maps) {
+    sessionChoice = maps;
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ maps: maps, t: Date.now() })); } catch (e) {}
+  }
+
+  var mapFrame = document.getElementById("map");
+  var mapWaiting = mapFrame ? mapFrame.innerHTML : "";
+
+  function bindMapButton() {
+    var btn = mapFrame && mapFrame.querySelector("[data-map-load]");
+    if (btn) btn.addEventListener("click", function (e) { e.preventDefault(); setConsent(true); });
+  }
+  function showMap() {
+    if (!mapFrame || mapFrame.querySelector("iframe")) return;
+    var iframe = document.createElement("iframe");
+    iframe.src = mapFrame.getAttribute("data-src");
+    iframe.title = "Carte Google Maps : Béarn Plâtre, Asté-Béon";
+    iframe.referrerPolicy = "no-referrer-when-downgrade";
+    iframe.allowFullscreen = true;
+    mapFrame.innerHTML = "";
+    mapFrame.appendChild(iframe);
+  }
+  function hideMap() {
+    if (!mapFrame || !mapFrame.querySelector("iframe")) return;
+    mapFrame.innerHTML = mapWaiting;
+    bindMapButton();
+  }
+
+  var banner = null;
+  function openBanner(focus) {
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.className = "cookie-banner";
+      banner.setAttribute("role", "region");
+      banner.setAttribute("aria-label", "Cookies");
+      banner.innerHTML =
+        '<p class="cookie-title">Cookies</p>' +
+        "<p>La carte de la rubrique « Secteur » est fournie par Google Maps, qui dépose des cookies. " +
+        'Acceptez-vous ces cookies ? <a href="mentions-legales.html#cookies">En savoir plus</a></p>' +
+        '<div class="cookie-actions">' +
+        '<button class="btn" type="button" data-consent="false">Refuser</button>' +
+        '<button class="btn" type="button" data-consent="true">Accepter</button>' +
+        "</div>";
+      banner.querySelectorAll("[data-consent]").forEach(function (b) {
+        b.addEventListener("click", function () { setConsent(b.getAttribute("data-consent") === "true"); });
+      });
+      document.body.appendChild(banner);
+    }
+    banner.hidden = false;
+    if (focus) banner.querySelector("button").focus();
+  }
+  function setConsent(maps) {
+    saveConsent(maps);
+    if (banner) banner.hidden = true;
+    if (maps) showMap(); else hideMap();
+  }
+
+  bindMapButton();
+  var choice = readConsent();
+  if (choice === true) showMap();
+  else if (choice === null && mapFrame) openBanner(false);
+  document.querySelectorAll("[data-consent-open]").forEach(function (el) {
+    el.addEventListener("click", function (e) { e.preventDefault(); openBanner(true); });
+  });
+
   // ---------- Réalisations : visionneuse plein écran ----------
   var shots = Array.prototype.slice.call(document.querySelectorAll(".gallery .shot a"));
   if (shots.length && typeof HTMLDialogElement === "function") {
