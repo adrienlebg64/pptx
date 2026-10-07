@@ -878,6 +878,7 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
   color: var(--ink);
   text-decoration: none;
 }
+.contact-lines a[href^="mailto:"] { overflow-wrap: anywhere; }
 .contact-lines a.big { font-size: clamp(24px, 2.4vw, 30px); font-weight: 800; font-stretch: 106%; letter-spacing: -.01em; }
 .contact-lines a:hover { color: var(--red); }
 
