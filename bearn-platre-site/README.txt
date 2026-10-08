@@ -2,7 +2,7 @@ BÉARN PLÂTRE — SITE VITRINE
 ===========================
 
 Téléphone : 06 30 39 21 57
-Formulaire (test) : mondeilhadrien@gmail.com
+Formulaire de devis : jerome.mondeilh@orange.fr
 
 Ouvrir index.html dans le navigateur.
 
@@ -86,9 +86,9 @@ seul, sans ce README).
    Adresse provisoire : https://adrienlebg64.github.io/bearn-platre/
 2. Nom de domaine (ex. bearn-platre.fr), au nom de l'entreprise, puis le relier
    à GitHub (fichier CNAME + réglages DNS, voir avec Claude).
-3. Formulaire de devis : il arrive encore sur l'adresse de test
-   (mondeilhadrien@gmail.com, attribut action du <form> dans index.html).
-   Mettre l'adresse définitive.
+3. Formulaire de devis : les demandes arrivent sur jerome.mondeilh@orange.fr
+   (attribut action du <form> dans index.html). C'est cette boîte qui recevra
+   l'e-mail d'activation de FormSubmit.
 4. Image de partage : dans index.html, remplacer content="assets/partage.png" par
    l'adresse complète (ex. https://www.bearn-platre.fr/assets/partage.png).
 
