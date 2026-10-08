@@ -77,16 +77,28 @@ TEXTES À FAIRE VALIDER PAR BÉARN PLÂTRE
 - Mentions légales : la phrase « ni vendues ni cédées à des tiers ».
 
 
-AVANT LA MISE EN LIGNE
-----------------------
-1. Nom de domaine + hébergement (ex. OVHcloud, o2switch), au nom de l'entreprise.
-2. Mentions légales : compléter ce qui est surligné en jaune (forme juridique,
-   dirigeant, hébergeur).
+MISE EN LIGNE (GITHUB PAGES)
+----------------------------
+Le site est publié depuis le dépôt GitHub adrienlebg64/bearn-platre (le site
+seul, sans ce README).
+1. GitHub > dépôt bearn-platre > Settings > Pages : Source « Deploy from a
+   branch », branche « main », dossier « / (root) », Save.
+   Adresse provisoire : https://adrienlebg64.github.io/bearn-platre/
+2. Nom de domaine (ex. bearn-platre.fr), au nom de l'entreprise, puis le relier
+   à GitHub (fichier CNAME + réglages DNS, voir avec Claude).
 3. Formulaire de devis : il arrive encore sur l'adresse de test
    (mondeilhadrien@gmail.com, attribut action du <form> dans index.html).
    Mettre l'adresse définitive.
 4. Image de partage : dans index.html, remplacer content="assets/partage.png" par
-   l'adresse complète (ex. https://www.votre-domaine.fr/assets/partage.png).
+   l'adresse complète (ex. https://www.bearn-platre.fr/assets/partage.png).
+
+
+MENTIONS LÉGALES
+----------------
+Remplies d'après les registres publics (Pappers, Pages Jaunes) : EURL au
+capital de 1 000 €, RCS Pau 509 841 730, TVA FR05 509 841 730, gérant
+Jérôme Mondeilh. À vérifier sur un Kbis récent.
+Hébergeur : GitHub, Inc. (à changer si le site part chez un autre hébergeur).
 
 
 JUSTE APRÈS LA MISE EN LIGNE (OBLIGATOIRE)

@@ -1284,15 +1284,6 @@ h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 800; }
 .legal dl { display: grid; grid-template-columns: 200px 1fr; gap: 8px 20px; margin: 0; }
 .legal dt { color: var(--muted); font-size: 15px; }
 .legal dd { margin: 0; color: var(--ink); font-weight: 550; }
-.todo {
-  display: inline-block;
-  padding: 1px 8px;
-  background: #fff3c4;
-  border: 1px dashed #c9a400;
-  color: #6b5600;
-  font-size: 14px;
-  font-weight: 600;
-}
 
 /* ==========================================================================
    Responsive
