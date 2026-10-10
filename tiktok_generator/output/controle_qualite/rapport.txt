@@ -1,0 +1,9 @@
+[OK] Durée 58.93 s (cible 55-60 s)
+[OK] Résolution 1080x1920
+[OK] Images/s 30
+[OK] Vidéo h264 / yuv420p
+[OK] Audio aac
+[OK] Écrans noirs détectés : 0
+      mean_volume: -17.4 dB
+      max_volume: -1.4 dB
+[OK] Sous-titres incrustés : 51 groupes ; SRT : 56 entrées

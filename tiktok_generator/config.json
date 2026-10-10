@@ -1,0 +1,731 @@
+{
+  "project": {
+    "title": "L'homme qui a survécu aux deux bombes atomiques",
+    "images_dir": "assets/tiktok_scenes",
+    "output_dir": "output",
+    "subtitles_dir": "subtitles",
+    "video_name": "video_finale_tiktok.mp4",
+    "srt_name": "sous_titres.srt",
+    "narration_name": "narration.mp3",
+    "description_name": "description_tiktok.txt",
+    "target_duration": [
+      55,
+      60
+    ]
+  },
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "crf": 21,
+    "preset": "slow",
+    "crossfade": 0.45,
+    "grain": 3.2,
+    "vignette": 0.28,
+    "color_harmonize": 0.3,
+    "contrast": 1.06,
+    "upscale": "edsr",
+    "ai_disclaimer": {
+      "text": "Images : reconstitutions générées par IA",
+      "start": 0.0,
+      "end": 4.5
+    },
+    "maxrate": "9M"
+  },
+  "voice": {
+    "engine": "auto",
+    "edge_voice": "fr-FR-HenriNeural",
+    "edge_rate": "-4%",
+    "edge_pitch": "-6Hz",
+    "piper_model": "fr_FR-tom-medium",
+    "piper_speed": 1.08,
+    "pitch_semitones": -1.2,
+    "lead_in": 0.15,
+    "tail": 0.25,
+    "pause_scale": 0.8
+  },
+  "pronunciations": {
+    "Tsutomu": "Tsoutomou",
+    "Yamaguchi": "Yamagoutchi",
+    "6": "six",
+    "9": "neuf",
+    "1945": "mille neuf cent quarante-cinq",
+    "2010": "deux mille dix",
+    "93": "quatre-vingt-treize"
+  },
+  "subtitles": {
+    "font": "assets/fonts/InterDisplay-Black.otf",
+    "font_fallbacks": [
+      "C:/Windows/Fonts/arialbd.ttf",
+      "C:/Windows/Fonts/segoeuib.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    ],
+    "size": 88,
+    "stroke": 8,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "highlight_color": [
+      255,
+      214,
+      10
+    ],
+    "center_y": 0.655,
+    "max_width": 860,
+    "min_words": 2,
+    "max_words": 4,
+    "max_chars": 20,
+    "keywords": [
+      "bombe",
+      "bombes",
+      "atomique",
+      "deuxième",
+      "trois",
+      "jours",
+      "Hiroshima",
+      "Nagasaki",
+      "Tsutomu",
+      "Yamaguchi",
+      "aveuglante",
+      "survivre",
+      "survit",
+      "incroyable",
+      "train",
+      "6",
+      "9",
+      "août",
+      "1945",
+      "2010",
+      "93",
+      "ans",
+      "seul",
+      "kilomètres",
+      "encore",
+      "explose",
+      "exploser",
+      "survivant"
+    ]
+  },
+  "music": {
+    "mode": "procedural",
+    "file": "",
+    "gain_db": -21,
+    "duck_db": 7,
+    "sfx_duck_db": 4
+  },
+  "mix": {
+    "voice_lufs": -16,
+    "final_lufs": -14,
+    "true_peak": -1.5
+  },
+  "scenes": [
+    {
+      "image": "scene_01.png",
+      "crop": {
+        "top": 56,
+        "bottom": 1,
+        "left": 1,
+        "right": 3
+      },
+      "motion": {
+        "from": [
+          1.0,
+          0.5,
+          0.58
+        ],
+        "to": [
+          1.12,
+          0.5,
+          0.5
+        ]
+      },
+      "parallax": {
+        "mode": "ground",
+        "amount": 14
+      },
+      "mood": "calm",
+      "sfx": [
+        {
+          "type": "city",
+          "gain_db": -24
+        },
+        {
+          "type": "bell",
+          "at": 1.2,
+          "gain_db": -30
+        }
+      ],
+      "lines": [
+        {
+          "text": "Cet homme a survécu à une bombe atomique…",
+          "pause": 0.3
+        },
+        {
+          "text": "puis à une deuxième, trois jours plus tard.",
+          "pause": 0.55
+        }
+      ]
+    },
+    {
+      "image": "scene_02.png",
+      "crop": {
+        "top": 56,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.0,
+          0.5,
+          0.62
+        ],
+        "to": [
+          1.14,
+          0.5,
+          0.48
+        ]
+      },
+      "parallax": {
+        "mode": "subject",
+        "focus": [
+          0.5,
+          0.62
+        ],
+        "amount": 12
+      },
+      "mood": "calm",
+      "sfx": [
+        {
+          "type": "city",
+          "gain_db": -26
+        },
+        {
+          "type": "riser",
+          "at_end": -1.4,
+          "gain_db": -24
+        }
+      ],
+      "lines": [
+        {
+          "text": "Le 6 août 1945, Tsutomu Yamaguchi est à Hiroshima pour son travail.",
+          "pause": 0.45
+        }
+      ]
+    },
+    {
+      "image": "scene_03.png",
+      "crop": {
+        "top": 56,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.22,
+          0.5,
+          0.48
+        ],
+        "to": [
+          1.04,
+          0.5,
+          0.5
+        ]
+      },
+      "flash": true,
+      "transition_in": "cut",
+      "mood": "impact",
+      "sfx": [
+        {
+          "type": "explosion",
+          "at": 0.0,
+          "gain_db": -13
+        }
+      ],
+      "lead_in": 0.35,
+      "lines": [
+        {
+          "text": "Soudain, une lumière aveuglante traverse le ciel.",
+          "pause": 0.6
+        }
+      ]
+    },
+    {
+      "image": "scene_04.png",
+      "crop": {
+        "top": 56,
+        "bottom": 1,
+        "left": 3,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.16,
+          0.36,
+          0.5
+        ],
+        "to": [
+          1.16,
+          0.64,
+          0.46
+        ]
+      },
+      "parallax": {
+        "mode": "ground",
+        "amount": 16
+      },
+      "mood": "somber",
+      "sfx": [
+        {
+          "type": "wind",
+          "gain_db": -27
+        }
+      ],
+      "lines": [
+        {
+          "text": "Une bombe atomique vient d'exploser au-dessus de la ville.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "image": "scene_05.png",
+      "crop": {
+        "top": 64,
+        "bottom": 1,
+        "left": 1,
+        "right": 3
+      },
+      "motion": {
+        "from": [
+          1.03,
+          0.55,
+          0.45
+        ],
+        "to": [
+          1.18,
+          0.57,
+          0.38
+        ]
+      },
+      "parallax": {
+        "mode": "subject",
+        "focus": [
+          0.57,
+          0.4
+        ],
+        "amount": 10
+      },
+      "mood": "somber",
+      "sfx": [
+        {
+          "type": "wind",
+          "gain_db": -31
+        }
+      ],
+      "lines": [
+        {
+          "text": "Gravement brûlé, il parvient pourtant à survivre.",
+          "pause": 0.55
+        },
+        {
+          "text": "Mais le plus incroyable reste à venir.",
+          "pause": 0.45
+        }
+      ]
+    },
+    {
+      "image": "scene_06.png",
+      "crop": {
+        "top": 64,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.14,
+          0.5,
+          0.34
+        ],
+        "to": [
+          1.14,
+          0.5,
+          0.6
+        ]
+      },
+      "parallax": {
+        "mode": "ground",
+        "amount": 12
+      },
+      "mood": "tension",
+      "sfx": [
+        {
+          "type": "train",
+          "gain_db": -22
+        }
+      ],
+      "lines": [
+        {
+          "text": "Malgré ses blessures, il rentre chez lui en train, à Nagasaki.",
+          "pause": 0.45
+        }
+      ]
+    },
+    {
+      "image": "scene_07.png",
+      "crop": {
+        "top": 64,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.12,
+          0.5,
+          0.66
+        ],
+        "to": [
+          1.12,
+          0.5,
+          0.4
+        ]
+      },
+      "parallax": {
+        "mode": "ground",
+        "amount": 16
+      },
+      "mood": "tension",
+      "sfx": [
+        {
+          "type": "city",
+          "gain_db": -30
+        }
+      ],
+      "lines": [
+        {
+          "text": "Le 9 août, il retourne au travail.",
+          "pause": 0.3
+        }
+      ]
+    },
+    {
+      "image": "scene_08.png",
+      "crop": {
+        "top": 64,
+        "bottom": 1,
+        "left": 3,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.0,
+          0.45,
+          0.55
+        ],
+        "to": [
+          1.12,
+          0.4,
+          0.52
+        ]
+      },
+      "parallax": {
+        "mode": "subject",
+        "focus": [
+          0.35,
+          0.5
+        ],
+        "amount": 10
+      },
+      "mood": "tension",
+      "sfx": [
+        {
+          "type": "heartbeat",
+          "gain_db": -22
+        },
+        {
+          "type": "riser",
+          "at_end": -1.6,
+          "gain_db": -22
+        }
+      ],
+      "lines": [
+        {
+          "text": "À son bureau, il raconte à son chef ce qu'il a vécu…",
+          "pause": 0.35
+        }
+      ]
+    },
+    {
+      "image": "scene_09.png",
+      "crop": {
+        "top": 80,
+        "bottom": 1,
+        "left": 1,
+        "right": 3
+      },
+      "motion": {
+        "from": [
+          1.22,
+          0.5,
+          0.42
+        ],
+        "to": [
+          1.04,
+          0.5,
+          0.48
+        ]
+      },
+      "flash": true,
+      "transition_in": "cut",
+      "mood": "silence",
+      "sfx": [
+        {
+          "type": "explosion",
+          "at": 0.0,
+          "gain_db": -11,
+          "muted": true
+        },
+        {
+          "type": "ring",
+          "at": 0.0,
+          "gain_db": -34
+        }
+      ],
+      "lead_in": 0.75,
+      "lines": [
+        {
+          "text": "Soudain, une deuxième bombe atomique explose sur la ville.",
+          "pause": 1.1
+        }
+      ]
+    },
+    {
+      "image": "scene_10.png",
+      "crop": {
+        "top": 80,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.16,
+          0.64,
+          0.5
+        ],
+        "to": [
+          1.16,
+          0.36,
+          0.46
+        ]
+      },
+      "parallax": {
+        "mode": "ground",
+        "amount": 16
+      },
+      "mood": "somber",
+      "sfx": [
+        {
+          "type": "rumble",
+          "at": 0.0,
+          "gain_db": -21
+        },
+        {
+          "type": "wind",
+          "gain_db": -27
+        }
+      ],
+      "lines": [
+        {
+          "text": "Encore une fois, il est à trois kilomètres de l'explosion.",
+          "pause": 0.45
+        }
+      ]
+    },
+    {
+      "image": "scene_11.png",
+      "crop": {
+        "top": 80,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.0,
+          0.52,
+          0.42
+        ],
+        "to": [
+          1.15,
+          0.55,
+          0.34
+        ]
+      },
+      "parallax": {
+        "mode": "subject",
+        "focus": [
+          0.55,
+          0.3
+        ],
+        "amount": 10
+      },
+      "mood": "somber",
+      "sfx": [
+        {
+          "type": "wind",
+          "gain_db": -32
+        }
+      ],
+      "lines": [
+        {
+          "text": "Et contre toute attente…",
+          "pause": 0.35
+        },
+        {
+          "text": "il survit encore.",
+          "pause": 0.6
+        }
+      ]
+    },
+    {
+      "image": "scene_12.png",
+      "crop": {
+        "top": 80,
+        "bottom": 1,
+        "left": 3,
+        "right": 1
+      },
+      "motion": {
+        "from": [
+          1.0,
+          0.55,
+          0.45
+        ],
+        "to": [
+          1.12,
+          0.58,
+          0.38
+        ]
+      },
+      "parallax": {
+        "mode": "subject",
+        "focus": [
+          0.58,
+          0.35
+        ],
+        "amount": 8
+      },
+      "mood": "hope",
+      "sfx": [],
+      "lines": [
+        {
+          "text": "Il vivra jusqu'en 2010, à l'âge de 93 ans.",
+          "pause": 0.35
+        },
+        {
+          "text": "Il reste le seul survivant officiellement reconnu des deux bombardements.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "image": "scene_13.png",
+      "crop": {
+        "top": 52,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "layout": "landscape",
+      "motion": {
+        "from": [
+          1.0,
+          0.5,
+          0.5
+        ],
+        "to": [
+          1.07,
+          0.52,
+          0.5
+        ]
+      },
+      "transition_in": "dip",
+      "mood": "hope",
+      "burn_subtitles": false,
+      "sfx": [
+        {
+          "type": "boom",
+          "at": 0.15,
+          "gain_db": -20
+        }
+      ],
+      "lead_in": 0.2,
+      "lines": [
+        {
+          "text": "Deux bombes.",
+          "pause": 0.3
+        },
+        {
+          "text": "Deux villes.",
+          "pause": 0.3
+        },
+        {
+          "text": "Un survivant.",
+          "pause": 0.7
+        }
+      ],
+      "fg_scale": 1.32,
+      "fg_center_x": 0.585
+    },
+    {
+      "image": "scene_14.png",
+      "crop": {
+        "top": 52,
+        "bottom": 1,
+        "left": 1,
+        "right": 1
+      },
+      "layout": "landscape",
+      "motion": {
+        "from": [
+          1.0,
+          0.5,
+          0.5
+        ],
+        "to": [
+          1.06,
+          0.5,
+          0.5
+        ]
+      },
+      "mood": "hope",
+      "burn_subtitles": false,
+      "sfx": [],
+      "lines": [
+        {
+          "text": "Tu connaissais cette histoire ?",
+          "pause": 1.5
+        }
+      ],
+      "fg_scale": 1.32,
+      "fg_center_x": 0.52
+    }
+  ],
+  "description": {
+    "text": "Il a survécu à Hiroshima… puis à Nagasaki, trois jours plus tard. Une histoire vraie qui semble impossible. Tu la connaissais ?",
+    "hashtags": [
+      "#HistoireVraie",
+      "#Mystere",
+      "#Histoire",
+      "#CultureGenerale",
+      "#Hiroshima"
+    ],
+    "note": "Images : reconstitutions générées par IA, pas des archives historiques."
+  }
+}

@@ -1,0 +1,8 @@
+numpy>=1.26
+pillow>=10.0
+opencv-contrib-python-headless>=4.8
+scipy>=1.11
+soundfile>=0.12
+edge-tts>=6.1
+sherpa-onnx>=1.10
+imageio-ffmpeg>=0.5
